@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ศูนย์อำนวยการป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี | จังหวัดหนองบัวลำภู</title>
+<link rel="icon" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg-0:#05080f;
+  --bg-1:#0a0f1c;
+  --bg-2:#0e1526;
+  --panel:#101a30;
+  --panel-2:#0c1424;
+  --border:#1d2c4d;
+  --border-soft:#16213b;
+  --accent:#00e5ff;
+  --accent-2:#0091ff;
+  --danger:#ff3d57;
+  --danger-soft:#ff6b81;
+  --warn:#ffb020;
+  --good:#19e3a4;
+  --gold:#ffcf5c;
+  --text-0:#eaf2ff;
+  --text-1:#9fb0d0;
+  --text-2:#67769c;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:
+    radial-gradient(circle at 15% 0%, rgba(0,145,255,0.14), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(255,61,87,0.10), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(0,229,255,0.08), transparent 50%),
+    var(--bg-0);
+  color:var(--text-0);
+  font-family:'Noto Sans Thai','Kanit',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.scanlines{
+  position:fixed; inset:0; pointer-events:none; z-index:1;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode:overlay;
+}
+.grid-overlay{
+  position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.35;
+  background-image:
+    linear-gradient(rgba(0,180,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,255,0.05) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%);
+}
+.wrap{position:relative; z-index:2; max-width:1760px; margin:0 auto; padding:14px 22px 60px;}
+
+/* ===== HEADER ===== */
+header.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:18px; padding:14px 22px; margin-bottom:16px;
+  background:linear-gradient(180deg, rgba(16,26,48,0.9), rgba(10,15,28,0.6));
+  border:1px solid var(--border); border-radius:16px;
+  backdrop-filter:blur(10px);
+  position:relative; overflow:hidden;
+}
+header.topbar::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent), var(--danger), var(--accent), transparent);
+  background-size:200% 100%; animation:sweep 6s linear infinite;
+}
+@keyframes sweep{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+.brand{display:flex; align-items:center; gap:16px;}
+.brand img.crest{width:54px; height:54px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(0,229,255,.35));}
+.brand .ttl{display:flex; flex-direction:column;}
+.brand .ttl .t1{font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:700; text-transform:uppercase;}
+.brand .ttl .t2{font-size:21px; font-weight:800; color:var(--text-0); line-height:1.3;}
+.brand .ttl .t3{font-size:12px; color:var(--text-1);}
+.topbar-right{display:flex; align-items:center; gap:14px;}
+.clock-box{text-align:right;}
+.clock-box .date{font-size:11px; color:var(--text-1);}
+.clock-box .time{font-size:22px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:1px;}
+.status-pill{
+  display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
+  background:rgba(25,227,164,0.1); border:1px solid rgba(25,227,164,0.4); font-size:12px; font-weight:600; color:var(--good);
+}
+.status-pill .dot{width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); animation:pulse 1.6s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1; transform:scale(1);}50%{opacity:.4; transform:scale(.7);}}
+.btn-admin{
+  display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; cursor:pointer;
+  background:linear-gradient(135deg, rgba(0,145,255,.18), rgba(0,229,255,.08));
+  border:1px solid rgba(0,229,255,.35); color:var(--accent); font-weight:700; font-size:13px;
+  font-family:inherit; transition:.2s;
+}
+.btn-admin:hover{background:rgba(0,229,255,.2); box-shadow:0 0 14px rgba(0,229,255,.25);}
+
+/* ===== KPI ROW ===== */
+.kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px;}
+.kpi{
+  background:linear-gradient(165deg, rgba(16,26,48,.92), rgba(10,15,28,.75));
+  border:1px solid var(--border); border-radius:16px; padding:18px 20px;
+  position:relative; overflow:hidden;
+}
+.kpi::after{content:""; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, rgba(0,229,255,.10), transparent 70%);}
+.kpi .lbl{font-size:12px; color:var(--text-1); font-weight:600; letter-spacing:.5px; display:flex; align-items:center; gap:6px; margin-bottom:8px;}
+.kpi .val{font-size:32px; font-weight:800; color:var(--text-0); line-height:1.1; font-variant-numeric:tabular-nums;}
+.kpi .unit{font-size:13px; color:var(--text-2); font-weight:500; margin-left:4px;}
+.kpi .sub{margin-top:8px; font-size:12px; display:flex; align-items:center; gap:5px;}
+.kpi.danger .val{color:var(--danger-soft);}
+.kpi.warn .val{color:var(--warn);}
+.kpi.good .val{color:var(--good);}
+.kpi.accent .val{color:var(--accent);}
+.trend-up{color:var(--danger-soft);}
+.trend-down{color:var(--good);}
+
+/* ===== MAIN GRID ===== */
+.main-grid{display:grid; grid-template-columns:1.35fr 1fr 1fr; gap:14px; margin-bottom:14px;}
+.panel{
+  background:linear-gradient(165deg, rgba(16,26,48,.88), rgba(10,15,28,.7));
+  border:1px solid var(--border); border-radius:16px; padding:18px 20px; position:relative;
+}
+.panel-hd{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.panel-hd .title{font-size:14px; font-weight:700; color:var(--text-0); display:flex; align-items:center; gap:8px;}
+.panel-hd .title .bar{width:4px; height:16px; border-radius:2px; background:var(--accent); box-shadow:0 0 8px var(--accent);}
+.panel-hd .badge{font-size:10px; padding:3px 9px; border-radius:999px; background:rgba(0,229,255,.1); color:var(--accent); border:1px solid rgba(0,229,255,.3); font-weight:700;}
+
+.chart-box{height:230px; position:relative;}
+
+/* district honeycomb / grid */
+.district-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.district-card{
+  background:rgba(8,13,26,.6); border:1px solid var(--border-soft); border-radius:12px; padding:12px 10px; text-align:center;
+}
+.district-card .name{font-size:12px; font-weight:700; color:var(--text-0); margin-bottom:8px; min-height:32px; display:flex; align-items:center; justify-content:center;}
+.ring{position:relative; width:64px; height:64px; margin:0 auto;}
+.ring svg{transform:rotate(-90deg);}
+.ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:var(--good);}
+.district-card .metrics{display:flex; justify-content:space-around; margin-top:8px; font-size:9.5px; color:var(--text-1);}
+.district-card .metrics b{display:block; color:var(--text-0); font-size:11px;}
+
+/* scam type list */
+.scam-list{display:flex; flex-direction:column; gap:9px;}
+.scam-item{
+  display:flex; align-items:center; gap:10px; background:rgba(8,13,26,.5); border:1px solid var(--border-soft);
+  border-radius:10px; padding:9px 12px;
+}
+.scam-rank{width:24px; height:24px; flex:none; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#04111f;}
+.scam-item:nth-child(1) .scam-rank{background:linear-gradient(135deg,var(--danger),var(--danger-soft)); color:#fff;}
+.scam-item:nth-child(2) .scam-rank{background:linear-gradient(135deg,var(--warn),var(--gold)); color:#221700;}
+.scam-item:nth-child(n+3) .scam-rank{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f;}
+.scam-item .txt{font-size:12.5px; color:var(--text-0); line-height:1.4; flex:1;}
+.scam-item .tag{font-size:10px; color:var(--text-2); white-space:nowrap;}
+
+/* measures */
+.measures-wrap{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.measure-col-hd{font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:7px; text-transform:uppercase; letter-spacing:.5px;}
+.measure-item{
+  display:flex; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border-soft); font-size:12.5px;
+}
+.measure-item:last-child{border-bottom:none;}
+.measure-item .mnum{flex:none; width:30px; font-weight:800; color:var(--accent); font-size:12px;}
+.measure-item .mbody .mdesc{color:var(--text-0); line-height:1.5;}
+.measure-item .mbody .mowner{color:var(--text-2); font-size:11px; margin-top:3px;}
+.measure-item .mstatus{flex:none; align-self:flex-start; font-size:9.5px; padding:3px 8px; border-radius:999px; background:rgba(25,227,164,.12); color:var(--good); border:1px solid rgba(25,227,164,.35); font-weight:700; white-space:nowrap;}
+
+/* contact strip */
+.bottom-grid{display:grid; grid-template-columns:1.6fr 1fr; gap:14px;}
+.contact-card{display:flex; align-items:center; gap:14px; padding:8px 4px;}
+.contact-avatar{
+  width:54px; height:54px; border-radius:14px; flex:none;
+  background:linear-gradient(135deg, rgba(0,145,255,.25), rgba(0,229,255,.08));
+  border:1px solid rgba(0,229,255,.4); display:flex; align-items:center; justify-content:center; font-size:22px;
+}
+.contact-info .name{font-size:14.5px; font-weight:800; color:var(--text-0);}
+.contact-info .role{font-size:12px; color:var(--text-1); margin-top:2px;}
+.contact-info .org{font-size:11.5px; color:var(--text-2);}
+.contact-phone{margin-left:auto; text-align:right;}
+.contact-phone .num{font-size:18px; font-weight:800; color:var(--accent); letter-spacing:.5px;}
+.contact-phone .lbl{font-size:10px; color:var(--text-2);}
+
+.hotline-strip{display:flex; gap:10px; flex-wrap:wrap;}
+.hotline{
+  flex:1; min-width:140px; background:rgba(255,61,87,.07); border:1px solid rgba(255,61,87,.3); border-radius:12px;
+  padding:12px; text-align:center;
+}
+.hotline .num{font-size:20px; font-weight:900; color:var(--danger-soft);}
+.hotline .lbl{font-size:10.5px; color:var(--text-1); margin-top:3px;}
+
+footer.foot{margin-top:18px; text-align:center; font-size:11px; color:var(--text-2); padding-bottom:10px;}
+footer.foot a{color:var(--text-1); text-decoration:none;}
+
+/* ===== Login overlay ===== */
+.overlay{
+  position:fixed; inset:0; z-index:50; background:rgba(2,4,10,.82); backdrop-filter:blur(6px);
+  display:none; align-items:center; justify-content:center;
+}
+.overlay.show{display:flex;}
+.login-box{
+  width:330px; background:linear-gradient(165deg, rgba(16,26,48,.97), rgba(8,12,22,.97));
+  border:1px solid var(--border); border-radius:18px; padding:28px; text-align:center;
+}
+.login-box .ttl{font-size:15px; font-weight:800; margin-bottom:4px;}
+.login-box .sub{font-size:11.5px; color:var(--text-2); margin-bottom:18px;}
+.login-box input{
+  width:100%; padding:13px; border-radius:10px; border:1px solid var(--border); background:#070b16;
+  color:var(--text-0); font-size:20px; text-align:center; letter-spacing:8px; font-weight:800; margin-bottom:14px;
+}
+.login-box input:focus{outline:none; border-color:var(--accent);}
+.login-box .err{color:var(--danger-soft); font-size:11.5px; min-height:16px; margin-bottom:8px;}
+.btn-row{display:flex; gap:8px;}
+.btn-row button{flex:1; padding:11px; border-radius:10px; border:none; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;}
+.btn-go{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f;}
+.btn-cancel{background:rgba(255,255,255,.06); color:var(--text-1); border:1px solid var(--border) !important;}
+
+/* presentation mode */
+.btn-present{
+  display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; cursor:pointer;
+  background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text-1); font-weight:700; font-size:13px; font-family:inherit;
+}
+body.present .topbar, body.present .btn-admin, body.present footer.foot{opacity:0;}
+body.present .wrap{padding-top:0;}
+
+@media (max-width:1180px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .main-grid{grid-template-columns:1fr; }
+  .measures-wrap{grid-template-columns:1fr;}
+  .bottom-grid{grid-template-columns:1fr;}
+  .district-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<div class="scanlines"></div>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <img class="crest" src="logo.png" alt="ตราจังหวัดหนองบัวลำภู">
+      <div class="ttl">
+        <div class="t1">COMMAND CENTER · ศูนย์อำนวยการ</div>
+        <div class="t2">การป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี</div>
+        <div class="t3">จังหวัดหนองบัวลำภู &nbsp;|&nbsp; แนบท้ายคำสั่งจังหวัดฯ ที่ /2569 ลงวันที่ มิถุนายน 2569</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-pill"><span class="dot"></span> ระบบออนไลน์</div>
+      <div class="clock-box">
+        <div class="date" id="dateBox">-</div>
+        <div class="time" id="timeBox">--:--:--</div>
+      </div>
+      <button class="btn-present" onclick="togglePresent()">🖥️ โหมดนำเสนอ</button>
+      <button class="btn-admin" onclick="openLogin()">🔒 แก้ไขข้อมูล</button>
+    </div>
+  </header>
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi danger">
+      <div class="lbl">📁 จำนวนคดีสะสม (2566–ปัจจุบัน)</div>
+      <div class="val" id="kpiCases">-</div>
+      <div class="sub trend-up" id="kpiCasesSub">กำลังโหลด...</div>
+    </div>
+    <div class="kpi warn">
+      <div class="lbl">💸 มูลค่าความเสียหายสะสม</div>
+      <div class="val" id="kpiDamage">-</div>
+      <div class="sub" id="kpiDamageSub">บาท</div>
+    </div>
+    <div class="kpi accent">
+      <div class="lbl">📊 ความเสียหายเฉลี่ยต่อคดี</div>
+      <div class="val" id="kpiAvg">-</div>
+      <div class="sub" id="kpiAvgSub">บาท/คดี</div>
+    </div>
+    <div class="kpi good">
+      <div class="lbl">✅ ผลการดำเนินงานเป้าหมายภาพรวม</div>
+      <div class="val" id="kpiTarget">-</div>
+      <div class="sub" id="kpiTargetSub">6 อำเภอ · มิ.ย.–ก.ย. 69</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>แนวโน้มสถิติคดีรายปี</div>
+        <div class="badge">ปี 2566–2569</div>
+      </div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>รูปแบบการหลอกลวงที่พบบ่อย</div>
+        <div class="badge">TOP RISK</div>
+      </div>
+      <div class="scam-list" id="scamList"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>สัดส่วนความเสียหายรายปี</div>
+        <div class="badge">บาท</div>
+      </div>
+      <div class="chart-box"><canvas id="doughnutChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- DISTRICT TARGETS -->
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="panel-hd">
+      <div class="title"><span class="bar"></span>เป้าหมายและผลการดำเนินงานรายอำเภอ</div>
+      <div class="badge" id="districtBadge">มิ.ย.–ก.ย. 2569</div>
+    </div>
+    <div class="district-grid" id="districtGrid"></div>
+  </div>
+
+  <!-- MEASURES -->
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="panel-hd">
+      <div class="title"><span class="bar"></span>มาตรการและแนวทางดำเนินงาน</div>
+      <div class="badge">2 ด้านหลัก</div>
+    </div>
+    <div class="measures-wrap" id="measuresWrap"></div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-grid">
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>ผู้ประสานการปฏิบัติ</div>
+        <div class="badge">CONTACT</div>
+      </div>
+      <div id="contactsWrap"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>สายด่วนแจ้งเหตุ</div>
+        <div class="badge">HOTLINE</div>
+      </div>
+      <div class="hotline-strip">
+        <div class="hotline"><div class="num">1441</div><div class="lbl">AOC ศูนย์ปฏิบัติการแก้ไขปัญหาอาชญากรรมออนไลน์</div></div>
+        <div class="hotline"><div class="num">191</div><div class="lbl">แจ้งเหตุด่วนเหตุร้าย ตำรวจ</div></div>
+        <div class="hotline"><div class="num">1599</div><div class="lbl">ตำรวจไซเบอร์</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    ระบบศูนย์อำนวยการป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี จังหวัดหนองบัวลำภู &nbsp;|&nbsp;
+    ข้อมูลปรับปรุงล่าสุด: <span id="lastUpdate">-</span> &nbsp;|&nbsp;
+    <a href="input.html">หน้ากรอกข้อมูล / นำเข้าไฟล์ Excel</a>
+  </footer>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div class="overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="ttl">🔒 ยืนยันรหัสผ่าน</div>
+    <div class="sub">กรอกรหัส PIN 6 หลัก เพื่อเข้าสู่หน้ากรอกข้อมูล</div>
+    <input type="password" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••••">
+    <div class="err" id="pinErr"></div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeLogin()">ยกเลิก</button>
+      <button class="btn-go" onclick="submitPin()">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'PASTE_YOUR_GAS_WEB_APP_URL_HERE';
+
+let DATA = null;
+let trendChart, doughnutChart;
+
+/* ---------- Clock ---------- */
+function tickClock(){
+  const now = new Date();
+  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  document.getElementById('dateBox').textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
+  document.getElementById('timeBox').textContent = now.toLocaleTimeString('th-TH',{hour12:false});
+}
+setInterval(tickClock,1000); tickClock();
+
+/* ---------- JSONP fetch ---------- */
+function jsonp(params){
+  return new Promise((resolve,reject)=>{
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    window[cbName] = (data)=>{ resolve(data); delete window[cbName]; script.remove(); };
+    const qs = new URLSearchParams({...params, callback:cbName}).toString();
+    const script = document.createElement('script');
+    script.src = API_URL + '?' + qs;
+    script.onerror = ()=>{ reject(new Error('network error')); delete window[cbName]; };
+    document.body.appendChild(script);
+  });
+}
+
+const FALLBACK = {
+  yearly:[
+    {'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857},
+    {'ปี':'2567','จำนวนคดี':999,'มูลค่าความเสียหาย':56254078},
+    {'ปี':'2568','จำนวนคดี':932,'มูลค่าความเสียหาย':48875912},
+    {'ปี':'2569 (ต.ค.68-พ.ค.69)','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776}
+  ],
+  district:[
+    {'อำเภอ':'เมืองหนองบัวลำภู','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
+    {'อำเภอ':'ศรีบุญเรือง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
+    {'อำเภอ':'นากลาง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
+    {'อำเภอ':'โนนสัง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
+    {'อำเภอ':'นาวัง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
+    {'อำเภอ':'สุวรรณคูหา','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}
+  ],
+  contacts:[{'ลำดับ':1,'ชื่อสกุล':'พ.ต.ต.วิชาญ จันทร์พิมพ์','หน่วยงาน':'ตำรวจภูธรจังหวัดหนองบัวลำภู','ตำแหน่ง':'สารวัตรฝ่ายอำนวยการ','เบอร์โทร':'089-174-7869'}],
+  measures:[
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'การบล็อกลิงก์และเว็บพนัน: ปิดกั้น URL/IP เว็บหลอกลวง-เว็บพนัน ภายใน 24 ชม.','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.2','รายละเอียด':'กวาดล้างซิมม้า: ผู้ถือซิมเกิน 5 ซิม ต้องยืนยันตัวตน (KYC)','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.3','รายละเอียด':'บูรณาการฐานข้อมูลข้ามหน่วยงาน วิเคราะห์เส้นทางการเงิน-เครือข่ายแก๊งคอลเซ็นเตอร์','หน่วยงานรับผิดชอบ':'สำนักงานประชาสัมพันธ์ / อำเภอทุกอำเภอ','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.4','รายละเอียด':'ระงับบัญชีม้าทันที (Hotline 1441) ภายใน 3 ชั่วโมง','หน่วยงานรับผิดชอบ':'ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.5','รายละเอียด':'จัดตั้งศูนย์ AOC 1441 ระดับจังหวัด (War Room)','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.6','รายละเอียด':'แกะรอยเส้นทางการเงินเชิงลึก ประสาน ปปง. และธนาคาร','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคาร','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.7','รายละเอียด':'ประสานกระทรวง DES ปิดกั้น URL/IP เว็บพนันและเว็บหลอกลวง','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.8','รายละเอียด':'สร้างเครือข่ายภาคประชาชนผ่านกำนัน ผู้ใหญ่บ้าน แจ้งเตือนภัยรูปแบบใหม่','หน่วยงานรับผิดชอบ':'อำเภอทุกอำเภอ','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.1','รายละเอียด':'ประชาสัมพันธ์แนวทางป้องกันก่อนรับโทรศัพท์ ให้มีสติไตร่ตรอง','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.2','รายละเอียด':'หลีกเลี่ยงการให้ข้อมูลส่วนตัว/การเงินกับคนแปลกหน้า','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.3','รายละเอียด':'ตรวจสอบข้อมูลกับหน่วยงานที่เกี่ยวข้องโดยตรงก่อนเชื่อผู้แอบอ้าง','หน่วยงานรับผิดชอบ':'สำนักงานประชาสัมพันธ์','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.4','รายละเอียด':'แนะนำแจ้งความ/แจ้งหน่วยงานทันทีหากตกเป็นเหยื่อ ไม่ต้องอาย','หน่วยงานรับผิดชอบ':'อำเภอทุกอำเภอ','สถานะ':'ดำเนินการต่อเนื่อง'}
+  ],
+  scamTypes:[
+    {'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'},
+    {'ลำดับ':2,'รูปแบบ':'หลอกให้โอนเงินเพื่อหารายได้พิเศษ / งานออนไลน์','สัดส่วน':'อันดับ 2'},
+    {'ลำดับ':3,'รูปแบบ':'อ้างเป็นเจ้าหน้าที่ตำรวจ/สรรพากร/การไฟฟ้า สร้างความกลัวให้โอนเงิน','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
+  ]
+};
+
+async function loadData(){
+  try{
+    if(!API_URL || API_URL.indexOf('PASTE_')===0) throw new Error('no api');
+    const res = await jsonp({action:'getAll'});
+    if(res.status==='ok'){ DATA = res.data; }
+    else throw new Error(res.message||'error');
+  }catch(e){
+    DATA = FALLBACK;
+  }
+  render();
+}
+
+function fmt(n){ return Number(n).toLocaleString('th-TH'); }
+
+function render(){
+  const y = DATA.yearly||[];
+  const totalCases = y.reduce((s,r)=>s+Number(r['จำนวนคดี']||0),0);
+  const totalDamage = y.reduce((s,r)=>s+Number(r['มูลค่าความเสียหาย']||0),0);
+  const avgPerCase = totalCases? Math.round(totalDamage/totalCases):0;
+
+  document.getElementById('kpiCases').textContent = fmt(totalCases)+' คดี';
+  document.getElementById('kpiCasesSub').textContent = `สะสม ${y.length} ปีงบประมาณ`;
+  document.getElementById('kpiDamage').textContent = (totalDamage/1e6).toLocaleString('th-TH',{maximumFractionDigits:2})+' ลบ.';
+  document.getElementById('kpiDamageSub').textContent = fmt(totalDamage)+' บาท';
+  document.getElementById('kpiAvg').textContent = fmt(avgPerCase);
+  document.getElementById('kpiAvgSub').textContent = 'บาท / คดี';
+
+  // district overall
+  const d = DATA.district||[];
+  let avgTarget = 0;
+  if(d.length){
+    const sum = d.reduce((s,r)=> s + (Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3, 0);
+    avgTarget = Math.round(sum/d.length);
+  }
+  document.getElementById('kpiTarget').textContent = avgTarget+'%';
+  document.getElementById('kpiTargetSub').textContent = avgTarget>=100? 'บรรลุเป้าหมายครบทุกอำเภอ' : `${d.length} อำเภอ · มิ.ย.–ก.ย. 69`;
+
+  document.getElementById('lastUpdate').textContent = DATA.updatedAt ? new Date(DATA.updatedAt).toLocaleString('th-TH') : new Date().toLocaleString('th-TH');
+
+  renderTrend(y);
+  renderDoughnut(y);
+  renderScamList(DATA.scamTypes||[]);
+  renderDistricts(d);
+  renderMeasures(DATA.measures||[]);
+  renderContacts(DATA.contacts||[]);
+}
+
+function renderTrend(y){
+  const ctx = document.getElementById('trendChart');
+  const labels = y.map(r=>r['ปี']);
+  const cases = y.map(r=>Number(r['จำนวนคดี']||0));
+  const damage = y.map(r=>Number(r['มูลค่าความเสียหาย']||0)/1e6);
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx,{
+    type:'bar',
+    data:{labels, datasets:[
+      {type:'bar', label:'จำนวนคดี', data:cases, backgroundColor:'rgba(255,61,87,0.55)', borderRadius:6, yAxisID:'y', order:2, barPercentage:.55},
+      {type:'line', label:'ความเสียหาย (ลบ.)', data:damage, borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.15)', tension:.35, fill:true, yAxisID:'y1', pointRadius:4, pointBackgroundColor:'#00e5ff', order:1}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{ legend:{labels:{color:'#9fb0d0', font:{family:'Noto Sans Thai', size:11}}},
+        tooltip:{backgroundColor:'#0c1424', borderColor:'#1d2c4d', borderWidth:1, titleColor:'#eaf2ff', bodyColor:'#9fb0d0'} },
+      scales:{
+        x:{ ticks:{color:'#67769c', font:{family:'Noto Sans Thai', size:10}}, grid:{color:'rgba(255,255,255,.04)'} },
+        y:{ position:'left', ticks:{color:'#67769c', font:{size:10}}, grid:{color:'rgba(255,255,255,.05)'}, title:{display:true,text:'คดี',color:'#67769c',font:{size:10}} },
+        y1:{ position:'right', ticks:{color:'#67769c', font:{size:10}}, grid:{display:false}, title:{display:true,text:'ล้านบาท',color:'#67769c',font:{size:10}} }
+      }
+    }
+  });
+}
+
+function renderDoughnut(y){
+  const ctx = document.getElementById('doughnutChart');
+  const labels = y.map(r=>r['ปี']);
+  const damage = y.map(r=>Number(r['มูลค่าความเสียหาย']||0));
+  if(doughnutChart) doughnutChart.destroy();
+  const colors = ['#00e5ff','#0091ff','#ffb020','#ff3d57','#19e3a4'];
+  doughnutChart = new Chart(ctx,{
+    type:'doughnut',
+    data:{labels, datasets:[{data:damage, backgroundColor:colors, borderColor:'#0a0f1c', borderWidth:3}]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{ legend:{position:'bottom', labels:{color:'#9fb0d0', font:{family:'Noto Sans Thai', size:10.5}, boxWidth:10, padding:10}},
+      tooltip:{callbacks:{label:(c)=> c.label+': '+fmt(c.raw)+' บาท'}, backgroundColor:'#0c1424', borderColor:'#1d2c4d', borderWidth:1, titleColor:'#eaf2ff', bodyColor:'#9fb0d0'} }
+    }
+  });
+}
+
+function renderScamList(list){
+  const wrap = document.getElementById('scamList');
+  wrap.innerHTML = list.map(r=>`
+    <div class="scam-item">
+      <div class="scam-rank">${r['ลำดับ']}</div>
+      <div class="txt">${r['รูปแบบ']}</div>
+      <div class="tag">${r['สัดส่วน']||''}</div>
+    </div>`).join('');
+}
+
+function ringSvg(pct, color){
+  const r=26, c=2*Math.PI*r;
+  const off = c - (Math.min(pct,100)/100)*c;
+  return `<svg width="64" height="64" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="${r}" stroke="rgba(255,255,255,.08)" stroke-width="6" fill="none"/>
+    <circle cx="32" cy="32" r="${r}" stroke="${color}" stroke-width="6" fill="none"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function renderDistricts(list){
+  const wrap = document.getElementById('districtGrid');
+  wrap.innerHTML = list.map(r=>{
+    const avg = Math.round((Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3);
+    const color = avg>=100? '#19e3a4' : avg>=70? '#ffb020' : '#ff3d57';
+    return `<div class="district-card">
+      <div class="name">${r['อำเภอ']}</div>
+      <div class="ring">${ringSvg(avg,color)}<div class="pct" style="color:${color}">${avg}%</div></div>
+      <div class="metrics">
+        <div>รับแจ้ง<b>${r['ผลรับแจ้งคดี']}%</b></div>
+        <div>อายัด<b>${r['ผลติดตามอายัดเงิน']}%</b></div>
+        <div>สอบสวน<b>${r['ผลสอบสวนสรุปสำนวน']}%</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMeasures(list){
+  const wrap = document.getElementById('measuresWrap');
+  const groups = {};
+  list.forEach(m=>{ (groups[m['ด้าน']] = groups[m['ด้าน']]||[]).push(m); });
+  const icons = {'การปราบปราม':'🛡️','ประชาสัมพันธ์':'📢'};
+  wrap.innerHTML = Object.keys(groups).map(g=>`
+    <div>
+      <div class="measure-col-hd">${icons[g]||'•'} ${g}</div>
+      ${groups[g].map(m=>`
+        <div class="measure-item">
+          <div class="mnum">${m['ลำดับ']}</div>
+          <div class="mbody">
+            <div class="mdesc">${m['รายละเอียด']}</div>
+            <div class="mowner">👤 ${m['หน่วยงานรับผิดชอบ']}</div>
+          </div>
+          <div class="mstatus">${m['สถานะ']||'ดำเนินการ'}</div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderContacts(list){
+  const wrap = document.getElementById('contactsWrap');
+  wrap.innerHTML = list.map(c=>`
+    <div class="contact-card">
+      <div class="contact-avatar">👮</div>
+      <div class="contact-info">
+        <div class="name">${c['ชื่อสกุล']}</div>
+        <div class="role">${c['ตำแหน่ง']}</div>
+        <div class="org">${c['หน่วยงาน']}</div>
+      </div>
+      <div class="contact-phone">
+        <div class="num">${c['เบอร์โทร']}</div>
+        <div class="lbl">โทรประสานงาน</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- Login ---------- */
+function openLogin(){ document.getElementById('loginOverlay').classList.add('show'); document.getElementById('pinInput').value=''; document.getElementById('pinErr').textContent=''; document.getElementById('pinInput').focus(); }
+function closeLogin(){ document.getElementById('loginOverlay').classList.remove('show'); }
+async function submitPin(){
+  const pin = document.getElementById('pinInput').value;
+  if(pin.length<4){ document.getElementById('pinErr').textContent='กรุณากรอกรหัสให้ครบ'; return; }
+  try{
+    if(!API_URL || API_URL.indexOf('PASTE_')===0){
+      // dev fallback: allow default pin locally without backend
+      if(pin==='309309'){ sessionStorage.setItem('cc_pin', pin); location.href='input.html'; return; }
+      document.getElementById('pinErr').textContent='รหัสไม่ถูกต้อง';
+      return;
+    }
+    const res = await jsonp({action:'login', pin});
+    if(res.status==='ok' && res.valid){
+      sessionStorage.setItem('cc_pin', pin);
+      location.href='input.html';
+    }else{
+      document.getElementById('pinErr').textContent='รหัสไม่ถูกต้อง กรุณาลองใหม่';
+    }
+  }catch(e){ document.getElementById('pinErr').textContent='เชื่อมต่อระบบไม่ได้'; }
+}
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitPin(); });
+
+function togglePresent(){ document.body.classList.toggle('present'); }
+
+loadData();
+setInterval(loadData, 5*60*1000);
+</script>
+</body>
+</html>

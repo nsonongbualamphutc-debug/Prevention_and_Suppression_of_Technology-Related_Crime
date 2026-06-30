@@ -1,0 +1,12 @@
+{
+  "name": "ศูนย์อำนวยการป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี จ.หนองบัวลำภู",
+  "short_name": "Cyber Crime NBP",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#00e5ff",
+  "icons": [
+    {"src": "favicon.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "favicon.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

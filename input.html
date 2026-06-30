@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบกรอกข้อมูล | แดชบอร์ดอาชญากรรมทางเทคโนโลยี หนองบัวลำภู</title>
+<link rel="icon" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg-0:#05080f; --panel:#101a30; --border:#1d2c4d; --accent:#00e5ff; --accent-2:#0091ff;
+  --danger:#ff3d57; --good:#19e3a4; --text-0:#eaf2ff; --text-1:#9fb0d0; --text-2:#67769c;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:radial-gradient(circle at 20% 0%, rgba(0,145,255,.12), transparent 45%), var(--bg-0);
+  color:var(--text-0); font-family:'Noto Sans Thai',sans-serif; min-height:100vh; padding-bottom:60px;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:20px;}
+header{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 20px; background:rgba(16,26,48,.85); border:1px solid var(--border); border-radius:14px; margin-bottom:18px;}
+header .ttl{font-size:16px; font-weight:800;}
+header .ttl small{display:block; font-size:11.5px; color:var(--text-1); font-weight:500; margin-top:2px;}
+a.back{color:var(--accent); text-decoration:none; font-size:13px; font-weight:700; border:1px solid var(--border); padding:8px 14px; border-radius:9px;}
+
+.tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.tab{padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:rgba(16,26,48,.6); color:var(--text-1); font-size:13px; font-weight:700; cursor:pointer;}
+.tab.active{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f; border-color:transparent;}
+
+.panel{background:linear-gradient(165deg, rgba(16,26,48,.9), rgba(10,15,28,.7)); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; display:none;}
+.panel.active{display:block;}
+.panel h3{font-size:14px; margin:0 0 14px; display:flex; align-items:center; gap:8px;}
+.panel h3 .bar{width:4px; height:15px; background:var(--accent); border-radius:2px;}
+
+table.edit{width:100%; border-collapse:collapse; font-size:12.5px;}
+table.edit th{background:rgba(0,229,255,.08); color:var(--accent); padding:8px; text-align:left; font-size:11.5px; border-bottom:1px solid var(--border);}
+table.edit td{padding:5px; border-bottom:1px solid rgba(255,255,255,.05);}
+table.edit input, table.edit select{
+  width:100%; background:#070b16; border:1px solid var(--border); border-radius:6px; color:var(--text-0); padding:7px 8px; font-size:12.5px; font-family:inherit;
+}
+table.edit input:focus{outline:none; border-color:var(--accent);}
+.row-actions{display:flex; gap:4px;}
+.icon-btn{background:rgba(255,61,87,.1); border:1px solid rgba(255,61,87,.3); color:var(--danger); border-radius:6px; padding:5px 9px; cursor:pointer; font-size:12px;}
+
+.toolbar{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+button.btn{padding:10px 18px; border-radius:10px; border:none; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;}
+.btn-primary{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f;}
+.btn-secondary{background:rgba(255,255,255,.06); color:var(--text-1); border:1px solid var(--border) !important;}
+.btn-add{background:rgba(25,227,164,.12); color:var(--good); border:1px solid rgba(25,227,164,.4) !important;}
+.btn-danger{background:rgba(255,61,87,.12); color:var(--danger); border:1px solid rgba(255,61,87,.4) !important;}
+
+.import-zone{
+  border:2px dashed var(--border); border-radius:14px; padding:30px; text-align:center; cursor:pointer; transition:.2s;
+}
+.import-zone:hover{border-color:var(--accent); background:rgba(0,229,255,.04);}
+.import-zone .ic{font-size:34px; margin-bottom:8px;}
+.import-zone .t1{font-weight:700; font-size:14px;}
+.import-zone .t2{font-size:12px; color:var(--text-2); margin-top:4px;}
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(120%);
+  background:#101a30; border:1px solid var(--accent); color:var(--text-0); padding:12px 22px; border-radius:10px;
+  font-size:13px; font-weight:600; transition:.3s; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.error{border-color:var(--danger);}
+
+.lock-screen{
+  position:fixed; inset:0; background:var(--bg-0); display:flex; align-items:center; justify-content:center; z-index:999;
+}
+.lock-box{width:320px; text-align:center; background:rgba(16,26,48,.9); border:1px solid var(--border); border-radius:18px; padding:30px;}
+.lock-box input{width:100%; padding:13px; border-radius:10px; border:1px solid var(--border); background:#070b16; color:#fff; font-size:20px; text-align:center; letter-spacing:8px; font-weight:800; margin:16px 0 10px;}
+.lock-box .err{color:var(--danger); font-size:12px; min-height:16px;}
+
+.note{font-size:11.5px; color:var(--text-2); margin-top:10px; line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-box">
+    <div style="font-size:32px;">🔒</div>
+    <div style="font-weight:800; margin-top:6px;">ระบบกรอกข้อมูล</div>
+    <div style="font-size:12px; color:var(--text-1); margin-top:4px;">กรอกรหัส PIN เพื่อเข้าใช้งาน</div>
+    <input type="password" id="lockPin" maxlength="6" inputmode="numeric" placeholder="••••••">
+    <div class="err" id="lockErr"></div>
+    <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="checkLock()">เข้าสู่ระบบ</button>
+    <div style="margin-top:14px;"><a href="index.html" style="color:var(--text-2); font-size:12px;">← กลับหน้าแดชบอร์ด</a></div>
+  </div>
+</div>
+
+<div class="wrap" id="mainApp" style="display:none;">
+  <header>
+    <div class="ttl">📝 ระบบกรอก/แก้ไขข้อมูล<small>การดำเนินงานป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี จ.หนองบัวลำภู</small></div>
+    <a class="back" href="index.html">← กลับแดชบอร์ด</a>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="yearly">📈 สถิติรายปี</div>
+    <div class="tab" data-tab="district">🏘️ เป้าหมายรายอำเภอ</div>
+    <div class="tab" data-tab="scam">⚠️ รูปแบบการหลอกลวง</div>
+    <div class="tab" data-tab="measures">🛡️ มาตรการ</div>
+    <div class="tab" data-tab="contacts">👮 ผู้ประสานงาน</div>
+    <div class="tab" data-tab="import">📥 นำเข้า/ส่งออกไฟล์ Excel</div>
+  </div>
+
+  <!-- YEARLY -->
+  <div class="panel active" id="panel-yearly">
+    <h3><span class="bar"></span>ข้อมูลสถิติคดีรายปี</h3>
+    <table class="edit"><thead><tr><th width="26%">ปี</th><th width="22%">จำนวนคดี (คดี)</th><th width="28%">มูลค่าความเสียหาย (บาท)</th><th width="18%">หมายเหตุ</th><th width="6%"></th></tr></thead>
+    <tbody id="tbody-yearly"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('yearly')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('yearly')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- DISTRICT -->
+  <div class="panel" id="panel-district">
+    <h3><span class="bar"></span>เป้าหมายและผลการดำเนินงานรายอำเภอ (ร้อยละ)</h3>
+    <table class="edit"><thead><tr>
+      <th width="18%">อำเภอ</th>
+      <th width="13%">เป้า รับแจ้งคดี</th><th width="13%">ผล รับแจ้งคดี</th>
+      <th width="13%">เป้า ติดตามอายัด</th><th width="13%">ผล ติดตามอายัด</th>
+      <th width="13%">เป้า สอบสวน</th><th width="13%">ผล สอบสวน</th><th width="4%"></th>
+    </tr></thead><tbody id="tbody-district"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('district')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('district')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- SCAM TYPES -->
+  <div class="panel" id="panel-scam">
+    <h3><span class="bar"></span>รูปแบบการหลอกลวงที่พบบ่อย</h3>
+    <table class="edit"><thead><tr><th width="12%">ลำดับ</th><th width="68%">รูปแบบการหลอกลวง</th><th width="15%">สถานะ/สัดส่วน</th><th width="5%"></th></tr></thead>
+    <tbody id="tbody-scam"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('scam')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('scam')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- MEASURES -->
+  <div class="panel" id="panel-measures">
+    <h3><span class="bar"></span>มาตรการและแนวทางดำเนินงาน</h3>
+    <table class="edit"><thead><tr>
+      <th width="13%">ด้าน</th><th width="8%">ลำดับ</th><th width="42%">รายละเอียด</th><th width="22%">หน่วยงานรับผิดชอบ</th><th width="11%">สถานะ</th><th width="4%"></th>
+    </tr></thead><tbody id="tbody-measures"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('measures')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('measures')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- CONTACTS -->
+  <div class="panel" id="panel-contacts">
+    <h3><span class="bar"></span>ผู้ประสานการปฏิบัติ</h3>
+    <table class="edit"><thead><tr><th width="8%">ลำดับ</th><th width="24%">ชื่อ-สกุล</th><th width="28%">หน่วยงาน</th><th width="20%">ตำแหน่ง</th><th width="16%">เบอร์โทร</th><th width="4%"></th></tr></thead>
+    <tbody id="tbody-contacts"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('contacts')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('contacts')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- IMPORT/EXPORT -->
+  <div class="panel" id="panel-import">
+    <h3><span class="bar"></span>นำเข้าข้อมูลจากไฟล์ Excel</h3>
+    <div class="import-zone" onclick="document.getElementById('fileInput').click()" ondrop="handleDrop(event)" ondragover="event.preventDefault()">
+      <div class="ic">📊</div>
+      <div class="t1">คลิกหรือลากไฟล์ Excel มาวางที่นี่</div>
+      <div class="t2">รองรับไฟล์ .xlsx ที่มีโครงสร้างตามเทมเพลตเท่านั้น</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+    <div class="toolbar">
+      <button class="btn btn-secondary" onclick="downloadTemplate()">⬇️ ดาวน์โหลดเทมเพลต Excel</button>
+      <button class="btn btn-secondary" onclick="exportCurrentData()">⬇️ ส่งออกข้อมูลปัจจุบันเป็น Excel</button>
+    </div>
+    <div class="note">
+      เทมเพลตประกอบด้วย 5 ชีต: YearlyStats, DistrictTargets, ScamTypes, Measures, Contacts ตรงกับโครงสร้างข้อมูลของระบบ<br>
+      เมื่อนำเข้าไฟล์ ระบบจะ<b>แทนที่ข้อมูลเดิมทั้งหมด</b>ในแต่ละชีตที่มีอยู่ในไฟล์ — แก้ในไฟล์ Excel ให้เรียบร้อยก่อนนำเข้า หรือกรอกผ่านหน้านี้โดยตรงก็ได้
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'PASTE_YOUR_GAS_WEB_APP_URL_HERE';
+let PIN = sessionStorage.getItem('cc_pin') || '';
+let STATE = { yearly:[], district:[], scam:[], measures:[], contacts:[] };
+
+const COLS = {
+  yearly:['ปี','จำนวนคดี','มูลค่าความเสียหาย','หมายเหตุ'],
+  district:['อำเภอ','เป้ารับแจ้งคดี','ผลรับแจ้งคดี','เป้าติดตามอายัดเงิน','ผลติดตามอายัดเงิน','เป้าสอบสวนสรุปสำนวน','ผลสอบสวนสรุปสำนวน'],
+  scam:['ลำดับ','รูปแบบ','สัดส่วน'],
+  measures:['ด้าน','ลำดับ','รายละเอียด','หน่วยงานรับผิดชอบ','สถานะ'],
+  contacts:['ลำดับ','ชื่อสกุล','หน่วยงาน','ตำแหน่ง','เบอร์โทร']
+};
+const SHEET_KEY = { yearly:'yearly', district:'district', scam:'scamTypes', measures:'measures', contacts:'contacts' };
+const SAVE_ACTION = { yearly:'saveYearly', district:'saveDistrict', scam:'saveScamTypes', measures:'saveMeasures', contacts:'saveContacts' };
+
+/* ---------- Lock ---------- */
+function checkLock(){
+  const pin = document.getElementById('lockPin').value;
+  if(!API_URL || API_URL.indexOf('PASTE_')===0){
+    if(pin==='309309'){ unlock(pin); } else { document.getElementById('lockErr').textContent='รหัสไม่ถูกต้อง'; }
+    return;
+  }
+  jsonp({action:'login', pin}).then(res=>{
+    if(res.status==='ok' && res.valid) unlock(pin);
+    else document.getElementById('lockErr').textContent='รหัสไม่ถูกต้อง';
+  }).catch(()=> document.getElementById('lockErr').textContent='เชื่อมต่อระบบไม่ได้');
+}
+function unlock(pin){
+  PIN = pin; sessionStorage.setItem('cc_pin', pin);
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  loadAll();
+}
+document.getElementById('lockPin').addEventListener('keydown', e=>{ if(e.key==='Enter') checkLock(); });
+if(PIN){ unlock(PIN); }
+
+/* ---------- JSONP ---------- */
+function jsonp(params){
+  return new Promise((resolve,reject)=>{
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    window[cbName] = (data)=>{ resolve(data); delete window[cbName]; script.remove(); };
+    const qs = new URLSearchParams({...params, callback:cbName}).toString();
+    const script = document.createElement('script');
+    script.src = API_URL + '?' + qs;
+    script.onerror = ()=>{ reject(new Error('network error')); delete window[cbName]; };
+    document.body.appendChild(script);
+  });
+}
+
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className='toast show'+(isErr?' error':'');
+  setTimeout(()=> t.className='toast', 2600);
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  };
+});
+
+/* ---------- Load ---------- */
+async function loadAll(){
+  try{
+    if(!API_URL || API_URL.indexOf('PASTE_')===0) throw new Error('no api configured yet — กรุณาวาง URL ของ Apps Script ในตัวแปร API_URL');
+    const res = await jsonp({action:'getAll'});
+    if(res.status!=='ok') throw new Error(res.message);
+    STATE.yearly = res.data.yearly||[];
+    STATE.district = res.data.district||[];
+    STATE.scam = res.data.scamTypes||[];
+    STATE.measures = res.data.measures||[];
+    STATE.contacts = res.data.contacts||[];
+    renderAll();
+  }catch(e){
+    toast('โหลดข้อมูลจากเซิร์ฟเวอร์ไม่ได้ (ใช้ข้อมูลตั้งต้นแทน) — '+e.message, true);
+    seedDefaults();
+    renderAll();
+  }
+}
+
+function seedDefaults(){
+  STATE.yearly = [
+    {'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857,'หมายเหตุ':''},
+    {'ปี':'2567','จำนวนคดี':999,'มูลค่าความเสียหาย':56254078,'หมายเหตุ':''},
+    {'ปี':'2568','จำนวนคดี':932,'มูลค่าความเสียหาย':48875912,'หมายเหตุ':''},
+    {'ปี':'2569 (ต.ค.68-พ.ค.69)','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776,'หมายเหตุ':'ข้อมูล ณ พ.ค. 69'}
+  ];
+  STATE.district = ['เมืองหนองบัวลำภู','ศรีบุญเรือง','นากลาง','โนนสัง','นาวัง','สุวรรณคูหา'].map(a=>(
+    {'อำเภอ':a,'เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}
+  ));
+  STATE.scam = [
+    {'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'},
+    {'ลำดับ':2,'รูปแบบ':'หลอกให้โอนเงินเพื่อหารายได้พิเศษ / งานออนไลน์','สัดส่วน':'อันดับ 2'},
+    {'ลำดับ':3,'รูปแบบ':'อ้างเป็นเจ้าหน้าที่ตำรวจ/สรรพากร/การไฟฟ้า สร้างความกลัวให้โอนเงิน','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
+  ];
+  STATE.measures = [
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'การบล็อกลิงก์และเว็บพนัน ปิดกั้น URL/IP ภายใน 24 ชม.','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'การปราบปราม','ลำดับ':'1.2','รายละเอียด':'กวาดล้างซิมม้า ผู้ถือซิมเกิน 5 ซิม ต้องยืนยันตัวตน (KYC)','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
+    {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.1','รายละเอียด':'ประชาสัมพันธ์แนวทางป้องกันก่อนรับโทรศัพท์','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'}
+  ];
+  STATE.contacts = [
+    {'ลำดับ':1,'ชื่อสกุล':'พ.ต.ต.วิชาญ จันทร์พิมพ์','หน่วยงาน':'ตำรวจภูธรจังหวัดหนองบัวลำภู','ตำแหน่ง':'สารวัตรฝ่ายอำนวยการ','เบอร์โทร':'089-174-7869'}
+  ];
+}
+
+function renderAll(){ Object.keys(STATE).forEach(renderTable); }
+
+function renderTable(key){
+  const tbody = document.getElementById('tbody-'+key);
+  const cols = COLS[key];
+  tbody.innerHTML = STATE[key].map((row, idx)=>`
+    <tr>${cols.map(c=>`<td><input value="${(row[c]??'').toString().replace(/"/g,'&quot;')}" onchange="STATE['${key}'][${idx}]['${c}']=this.value"></td>`).join('')}
+      <td class="row-actions"><button class="icon-btn" onclick="delRow('${key}',${idx})">✕</button></td>
+    </tr>`).join('');
+}
+
+function addRow(key){
+  const obj = {}; COLS[key].forEach(c=> obj[c]='');
+  STATE[key].push(obj);
+  renderTable(key);
+}
+function delRow(key, idx){ STATE[key].splice(idx,1); renderTable(key); }
+
+async function saveTable(key){
+  if(!API_URL || API_URL.indexOf('PASTE_')===0){ toast('ยังไม่ได้ตั้งค่า API_URL ของ Apps Script', true); return; }
+  try{
+    const res = await jsonp({action:SAVE_ACTION[key], pin:PIN, payload: JSON.stringify(STATE[key])});
+    if(res.status==='ok') toast('บันทึกข้อมูลสำเร็จ ✓');
+    else toast('บันทึกไม่สำเร็จ: '+res.message, true);
+  }catch(e){ toast('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', true); }
+}
+
+/* ---------- Excel Import ---------- */
+function handleDrop(e){ e.preventDefault(); handleFile(e.dataTransfer.files[0]); }
+function handleFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    const mapSheet = {YearlyStats:'yearly', DistrictTargets:'district', ScamTypes:'scam', Measures:'measures', Contacts:'contacts'};
+    let found = 0;
+    Object.keys(mapSheet).forEach(sheetName=>{
+      if(wb.SheetNames.includes(sheetName)){
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {defval:''});
+        STATE[mapSheet[sheetName]] = json;
+        found++;
+      }
+    });
+    if(found===0){ toast('ไม่พบชีตที่ตรงกับเทมเพลต กรุณาตรวจสอบชื่อชีต', true); return; }
+    renderAll();
+    toast(`นำเข้าข้อมูลสำเร็จ (${found} ชีต) — กดปุ่ม "บันทึก" ในแต่ละแท็บเพื่อยืนยันการบันทึกลงระบบ`);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- Excel Template / Export ---------- */
+function buildWorkbook(data){
+  const wb = XLSX.utils.book_new();
+  const sheets = {
+    YearlyStats: data.yearly,
+    DistrictTargets: data.district,
+    ScamTypes: data.scam,
+    Measures: data.measures,
+    Contacts: data.contacts
+  };
+  Object.keys(sheets).forEach(name=>{
+    const ws = XLSX.utils.json_to_sheet(sheets[name]);
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  });
+  return wb;
+}
+
+function downloadTemplate(){
+  const sample = {
+    yearly:[{'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857,'หมายเหตุ':''}],
+    district:[{'อำเภอ':'เมืองหนองบัวลำภู','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}],
+    scam:[{'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'}],
+    measures:[{'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'รายละเอียดมาตรการ','หน่วยงานรับผิดชอบ':'หน่วยงานรับผิดชอบ','สถานะ':'ดำเนินการต่อเนื่อง'}],
+    contacts:[{'ลำดับ':1,'ชื่อสกุล':'ชื่อ-สกุล','หน่วยงาน':'หน่วยงาน','ตำแหน่ง':'ตำแหน่ง','เบอร์โทร':'08x-xxx-xxxx'}]
+  };
+  const wb = buildWorkbook(sample);
+  XLSX.writeFile(wb, 'เทมเพลต_แดชบอร์ดอาชญากรรมทางเทคโนโลยี_หนองบัวลำภู.xlsx');
+}
+function exportCurrentData(){
+  const wb = buildWorkbook(STATE);
+  XLSX.writeFile(wb, 'ข้อมูลปัจจุบัน_แดชบอร์ดอาชญากรรมทางเทคโนโลยี_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+</script>
+</body>
+</html>
