@@ -241,7 +241,7 @@ body.present .wrap{padding-top:0;}
       <div class="ttl">
         <div class="t1">COMMAND CENTER · ศูนย์อำนวยการ</div>
         <div class="t2">การป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี</div>
-        <div class="t3">จังหวัดหนองบัวลำภู &nbsp;|&nbsp; แนบท้ายคำสั่งจังหวัดฯ ที่ /2569 ลงวันที่ มิถุนายน 2569</div>
+        <div class="t3">จังหวัดหนองบัวลำภู</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -323,14 +323,7 @@ body.present .wrap{padding-top:0;}
   </div>
 
   <!-- BOTTOM -->
-  <div class="bottom-grid">
-    <div class="panel">
-      <div class="panel-hd">
-        <div class="title"><span class="bar"></span>ผู้ประสานการปฏิบัติ</div>
-        <div class="badge">CONTACT</div>
-      </div>
-      <div id="contactsWrap"></div>
-    </div>
+  <div class="bottom-grid" style="grid-template-columns:1fr;">
     <div class="panel">
       <div class="panel-hd">
         <div class="title"><span class="bar"></span>สายด่วนแจ้งเหตุ</div>
@@ -478,7 +471,6 @@ function render(){
   renderScamList(DATA.scamTypes||[]);
   renderDistricts(d);
   renderMeasures(DATA.measures||[]);
-  renderContacts(DATA.contacts||[]);
 }
 
 function renderTrend(y){
