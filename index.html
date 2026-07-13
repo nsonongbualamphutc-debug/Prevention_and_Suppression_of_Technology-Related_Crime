@@ -6,334 +6,382 @@
 <title>ศูนย์อำนวยการป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี | จังหวัดหนองบัวลำภู</title>
 <link rel="icon" href="favicon.png">
 <link rel="manifest" href="manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg-0:#05080f;
-  --bg-1:#0a0f1c;
-  --bg-2:#0e1526;
-  --panel:#101a30;
-  --panel-2:#0c1424;
-  --border:#1d2c4d;
-  --border-soft:#16213b;
+  --bg-0:#020409;
+  --bg-1:#060b16;
+  --panel:#0a1222;
+  --border:#15233f;
+  --border-glow:rgba(0,229,255,.35);
   --accent:#00e5ff;
   --accent-2:#0091ff;
-  --danger:#ff3d57;
+  --violet:#8b5cf6;
+  --danger:#ff2d55;
   --danger-soft:#ff6b81;
   --warn:#ffb020;
   --good:#19e3a4;
   --gold:#ffcf5c;
-  --text-0:#eaf2ff;
-  --text-1:#9fb0d0;
-  --text-2:#67769c;
+  --text-0:#eaf4ff;
+  --text-1:#8fa3c8;
+  --text-2:#5a6a8f;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{
-  background:
-    radial-gradient(circle at 15% 0%, rgba(0,145,255,0.14), transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(255,61,87,0.10), transparent 40%),
-    radial-gradient(circle at 50% 100%, rgba(0,229,255,0.08), transparent 50%),
-    var(--bg-0);
+  background:var(--bg-0);
   color:var(--text-0);
-  font-family:'Noto Sans Thai','Kanit',sans-serif;
-  min-height:100vh;
-  overflow-x:hidden;
+  font-family:'Noto Sans Thai',sans-serif;
+  min-height:100vh; overflow-x:hidden;
 }
-.scanlines{
-  position:fixed; inset:0; pointer-events:none; z-index:1;
-  background:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
-  mix-blend-mode:overlay;
+.mono{font-family:'Orbitron','Noto Sans Thai',sans-serif;}
+
+/* ===== BOOT SPLASH ===== */
+#boot{
+  position:fixed; inset:0; z-index:200; background:var(--bg-0);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;
+  transition:opacity .7s ease, visibility .7s;
 }
-.grid-overlay{
-  position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.35;
-  background-image:
-    linear-gradient(rgba(0,180,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,180,255,0.05) 1px, transparent 1px);
-  background-size:42px 42px;
-  mask-image:radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%);
+#boot.done{opacity:0; visibility:hidden;}
+#boot .crest-wrap{position:relative; width:150px; height:150px;}
+#boot .crest-wrap img{width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 22px rgba(0,229,255,.5)); animation:crestFloat 3s ease-in-out infinite;}
+@keyframes crestFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+#boot .orbit{position:absolute; inset:-22px; border:1px dashed rgba(0,229,255,.35); border-radius:50%; animation:spin 9s linear infinite;}
+#boot .orbit::before{content:""; position:absolute; top:-4px; left:50%; width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 12px var(--accent);}
+#boot .orbit.o2{inset:-40px; animation-duration:14s; animation-direction:reverse; border-color:rgba(255,45,85,.25);}
+#boot .orbit.o2::before{background:var(--danger); box-shadow:0 0 12px var(--danger);}
+@keyframes spin{to{transform:rotate(360deg);}}
+#boot .bt1{font-size:13px; letter-spacing:6px; color:var(--accent); font-weight:700;}
+#boot .bt2{font-size:22px; font-weight:900; text-align:center; line-height:1.5; padding:0 20px;}
+#boot .loadbar{width:280px; height:3px; background:rgba(255,255,255,.07); border-radius:99px; overflow:hidden;}
+#boot .loadbar i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent-2),var(--accent)); box-shadow:0 0 10px var(--accent); transition:width .3s;}
+#boot .bootlog{font-size:10.5px; color:var(--text-2); font-family:monospace; min-height:14px; letter-spacing:1px;}
+
+/* ===== BACKGROUND FX ===== */
+#particles{position:fixed; inset:0; z-index:0;}
+.aurora{
+  position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.8;
+  background:
+    radial-gradient(ellipse 60% 40% at 12% -5%, rgba(0,145,255,.16), transparent 60%),
+    radial-gradient(ellipse 50% 35% at 92% 8%, rgba(139,92,246,.13), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 50% 110%, rgba(255,45,85,.08), transparent 60%);
 }
-.wrap{position:relative; z-index:2; max-width:1760px; margin:0 auto; padding:14px 22px 60px;}
+.scanlines{position:fixed; inset:0; pointer-events:none; z-index:3; opacity:.5;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px); mix-blend-mode:overlay;}
+
+.wrap{position:relative; z-index:2; max-width:1780px; margin:0 auto; padding:12px 22px 50px;}
+
+/* ===== ALERT TICKER ===== */
+.ticker{
+  display:flex; align-items:center; gap:0; margin-bottom:12px; border-radius:12px; overflow:hidden;
+  border:1px solid rgba(255,45,85,.35); background:rgba(255,45,85,.05);
+}
+.ticker .tk-label{
+  flex:none; display:flex; align-items:center; gap:7px; padding:9px 16px; font-size:12px; font-weight:800;
+  background:linear-gradient(135deg, rgba(255,45,85,.28), rgba(255,45,85,.12)); color:var(--danger-soft); letter-spacing:1px;
+  border-right:1px solid rgba(255,45,85,.3);
+}
+.ticker .tk-label .blink{width:8px; height:8px; border-radius:50%; background:var(--danger); box-shadow:0 0 10px var(--danger); animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+.ticker .tk-track{flex:1; overflow:hidden; white-space:nowrap;}
+.ticker .tk-move{display:inline-block; padding-left:100%; animation:tick 45s linear infinite; font-size:12.5px; color:var(--text-1);}
+.ticker .tk-move b{color:var(--gold);}
+@keyframes tick{to{transform:translateX(-100%);}}
 
 /* ===== HEADER ===== */
 header.topbar{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:18px; padding:14px 22px; margin-bottom:16px;
-  background:linear-gradient(180deg, rgba(16,26,48,0.9), rgba(10,15,28,0.6));
-  border:1px solid var(--border); border-radius:16px;
-  backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:space-between; gap:18px; padding:14px 22px; margin-bottom:14px;
+  background:linear-gradient(180deg, rgba(10,18,34,.92), rgba(4,8,16,.7));
+  border:1px solid var(--border); border-radius:16px; backdrop-filter:blur(12px);
   position:relative; overflow:hidden;
 }
 header.topbar::before{
-  content:""; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent, var(--accent), var(--danger), var(--accent), transparent);
-  background-size:200% 100%; animation:sweep 6s linear infinite;
+  content:""; position:absolute; inset:0 0 auto 0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent), var(--violet), var(--danger), var(--accent), transparent);
+  background-size:200% 100%; animation:sweep 5s linear infinite;
 }
-@keyframes sweep{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+@keyframes sweep{to{background-position:200% 0;}}
 .brand{display:flex; align-items:center; gap:16px;}
-.brand img.crest{width:54px; height:54px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(0,229,255,.35));}
-.brand .ttl{display:flex; flex-direction:column;}
-.brand .ttl .t1{font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:700; text-transform:uppercase;}
-.brand .ttl .t2{font-size:21px; font-weight:800; color:var(--text-0); line-height:1.3;}
+.brand img.crest{width:56px; height:56px; object-fit:contain; filter:drop-shadow(0 0 12px rgba(0,229,255,.4));}
+.brand .ttl .t1{font-size:10.5px; letter-spacing:4px; color:var(--accent); font-weight:700;}
+.brand .ttl .t2{font-size:21px; font-weight:900; line-height:1.35; background:linear-gradient(90deg,#fff,#9fd8ff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
 .brand .ttl .t3{font-size:12px; color:var(--text-1);}
-.topbar-right{display:flex; align-items:center; gap:14px;}
+.topbar-right{display:flex; align-items:center; gap:12px;}
 .clock-box{text-align:right;}
 .clock-box .date{font-size:11px; color:var(--text-1);}
-.clock-box .time{font-size:22px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:1px;}
-.status-pill{
-  display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px;
-  background:rgba(25,227,164,0.1); border:1px solid rgba(25,227,164,0.4); font-size:12px; font-weight:600; color:var(--good);
-}
-.status-pill .dot{width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); animation:pulse 1.6s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1; transform:scale(1);}50%{opacity:.4; transform:scale(.7);}}
-.btn-admin{
-  display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; cursor:pointer;
-  background:linear-gradient(135deg, rgba(0,145,255,.18), rgba(0,229,255,.08));
-  border:1px solid rgba(0,229,255,.35); color:var(--accent); font-weight:700; font-size:13px;
-  font-family:inherit; transition:.2s;
-}
-.btn-admin:hover{background:rgba(0,229,255,.2); box-shadow:0 0 14px rgba(0,229,255,.25);}
+.clock-box .time{font-size:24px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:2px; text-shadow:0 0 16px rgba(0,229,255,.5);}
+.status-pill{display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:999px; background:rgba(25,227,164,.08); border:1px solid rgba(25,227,164,.4); font-size:11.5px; font-weight:700; color:var(--good);}
+.status-pill .dot{width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 10px var(--good); animation:pulse 1.6s infinite;}
+.btn-hd{display:flex; align-items:center; gap:6px; padding:8px 15px; border-radius:10px; cursor:pointer; font-family:inherit; font-weight:700; font-size:12.5px; transition:.2s; border:none;}
+.btn-admin{background:linear-gradient(135deg, rgba(0,145,255,.2), rgba(0,229,255,.08)); border:1px solid var(--border-glow); color:var(--accent);}
+.btn-admin:hover{box-shadow:0 0 16px rgba(0,229,255,.3);}
+.btn-present{background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text-1);}
 
-/* ===== KPI ROW ===== */
-.kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px;}
-.kpi{
-  background:linear-gradient(165deg, rgba(16,26,48,.92), rgba(10,15,28,.75));
-  border:1px solid var(--border); border-radius:16px; padding:18px 20px;
-  position:relative; overflow:hidden;
+/* ===== PANEL BASE (holo corners) ===== */
+.panel{
+  background:linear-gradient(165deg, rgba(10,18,34,.85), rgba(4,8,16,.72));
+  border:1px solid var(--border); border-radius:16px; padding:18px 20px; position:relative;
+  backdrop-filter:blur(8px);
 }
-.kpi::after{content:""; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, rgba(0,229,255,.10), transparent 70%);}
-.kpi .lbl{font-size:12px; color:var(--text-1); font-weight:600; letter-spacing:.5px; display:flex; align-items:center; gap:6px; margin-bottom:8px;}
-.kpi .val{font-size:32px; font-weight:800; color:var(--text-0); line-height:1.1; font-variant-numeric:tabular-nums;}
-.kpi .unit{font-size:13px; color:var(--text-2); font-weight:500; margin-left:4px;}
-.kpi .sub{margin-top:8px; font-size:12px; display:flex; align-items:center; gap:5px;}
-.kpi.danger .val{color:var(--danger-soft);}
-.kpi.warn .val{color:var(--warn);}
-.kpi.good .val{color:var(--good);}
-.kpi.accent .val{color:var(--accent);}
-.trend-up{color:var(--danger-soft);}
-.trend-down{color:var(--good);}
+.panel::before,.panel::after{
+  content:""; position:absolute; width:14px; height:14px; pointer-events:none; opacity:.9;
+}
+.panel::before{top:-1px; left:-1px; border-top:2px solid var(--accent); border-left:2px solid var(--accent); border-top-left-radius:14px;}
+.panel::after{bottom:-1px; right:-1px; border-bottom:2px solid var(--accent); border-right:2px solid var(--accent); border-bottom-right-radius:14px;}
+.panel-hd{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.panel-hd .title{font-size:14px; font-weight:800; display:flex; align-items:center; gap:9px;}
+.panel-hd .title .bar{width:4px; height:16px; border-radius:2px; background:var(--accent); box-shadow:0 0 10px var(--accent);}
+.panel-hd .badge{font-size:10px; padding:3px 10px; border-radius:999px; background:rgba(0,229,255,.08); color:var(--accent); border:1px solid rgba(0,229,255,.3); font-weight:800; letter-spacing:1px;}
+
+/* ===== KPI ===== */
+.kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin-bottom:13px;}
+.kpi{
+  background:linear-gradient(165deg, rgba(10,18,34,.9), rgba(4,8,16,.75));
+  border:1px solid var(--border); border-radius:16px; padding:17px 20px; position:relative; overflow:hidden;
+  transition:transform .25s, box-shadow .25s;
+}
+.kpi:hover{transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.5), 0 0 20px rgba(0,229,255,.08);}
+.kpi .glowline{position:absolute; left:0; right:0; bottom:0; height:2px;}
+.kpi.k1 .glowline{background:linear-gradient(90deg,transparent,var(--danger),transparent); box-shadow:0 0 12px var(--danger);}
+.kpi.k2 .glowline{background:linear-gradient(90deg,transparent,var(--warn),transparent); box-shadow:0 0 12px var(--warn);}
+.kpi.k3 .glowline{background:linear-gradient(90deg,transparent,var(--accent),transparent); box-shadow:0 0 12px var(--accent);}
+.kpi.k4 .glowline{background:linear-gradient(90deg,transparent,var(--good),transparent); box-shadow:0 0 12px var(--good);}
+.kpi .lbl{font-size:11.5px; color:var(--text-1); font-weight:600; margin-bottom:9px; display:flex; gap:6px; align-items:center;}
+.kpi .val{font-size:34px; font-weight:900; line-height:1.05; font-variant-numeric:tabular-nums; letter-spacing:.5px;}
+.kpi.k1 .val{color:var(--danger-soft); text-shadow:0 0 20px rgba(255,45,85,.35);}
+.kpi.k2 .val{color:var(--warn); text-shadow:0 0 20px rgba(255,176,32,.3);}
+.kpi.k3 .val{color:var(--accent); text-shadow:0 0 20px rgba(0,229,255,.35);}
+.kpi.k4 .val{color:var(--good); text-shadow:0 0 20px rgba(25,227,164,.3);}
+.kpi .sub{margin-top:8px; font-size:11.5px; color:var(--text-2);}
+.kpi .spark{position:absolute; right:14px; top:14px; opacity:.85;}
 
 /* ===== MAIN GRID ===== */
-.main-grid{display:grid; grid-template-columns:1.35fr 1fr 1fr; gap:14px; margin-bottom:14px;}
-.panel{
-  background:linear-gradient(165deg, rgba(16,26,48,.88), rgba(10,15,28,.7));
-  border:1px solid var(--border); border-radius:16px; padding:18px 20px; position:relative;
-}
-.panel-hd{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-.panel-hd .title{font-size:14px; font-weight:700; color:var(--text-0); display:flex; align-items:center; gap:8px;}
-.panel-hd .title .bar{width:4px; height:16px; border-radius:2px; background:var(--accent); box-shadow:0 0 8px var(--accent);}
-.panel-hd .badge{font-size:10px; padding:3px 9px; border-radius:999px; background:rgba(0,229,255,.1); color:var(--accent); border:1px solid rgba(0,229,255,.3); font-weight:700;}
+.main-grid{display:grid; grid-template-columns:1.45fr 1fr .95fr; gap:13px; margin-bottom:13px;}
+.chart-box{height:235px; position:relative;}
 
-.chart-box{height:230px; position:relative;}
+/* threat gauge */
+.gauge-wrap{display:flex; flex-direction:column; align-items:center; justify-content:center; height:235px;}
+.gauge-svg{width:210px;}
+.gauge-lbl{margin-top:-42px; text-align:center;}
+.gauge-lbl .g-val{font-size:30px; font-weight:900; font-family:'Orbitron';}
+.gauge-lbl .g-txt{font-size:12px; font-weight:800; letter-spacing:2px; margin-top:2px;}
+.gauge-note{font-size:10.5px; color:var(--text-2); margin-top:12px; text-align:center; line-height:1.6;}
 
-/* district honeycomb / grid */
-.district-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
-.district-card{
-  background:rgba(8,13,26,.6); border:1px solid var(--border-soft); border-radius:12px; padding:12px 10px; text-align:center;
-}
-.district-card .name{font-size:12px; font-weight:700; color:var(--text-0); margin-bottom:8px; min-height:32px; display:flex; align-items:center; justify-content:center;}
-.ring{position:relative; width:64px; height:64px; margin:0 auto;}
-.ring svg{transform:rotate(-90deg);}
-.ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:var(--good);}
-.district-card .metrics{display:flex; justify-content:space-around; margin-top:8px; font-size:9.5px; color:var(--text-1);}
-.district-card .metrics b{display:block; color:var(--text-0); font-size:11px;}
-
-/* scam type list */
-.scam-list{display:flex; flex-direction:column; gap:9px;}
-.scam-item{
-  display:flex; align-items:center; gap:10px; background:rgba(8,13,26,.5); border:1px solid var(--border-soft);
-  border-radius:10px; padding:9px 12px;
-}
-.scam-rank{width:24px; height:24px; flex:none; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#04111f;}
-.scam-item:nth-child(1) .scam-rank{background:linear-gradient(135deg,var(--danger),var(--danger-soft)); color:#fff;}
+/* scam list */
+.scam-list{display:flex; flex-direction:column; gap:8px;}
+.scam-item{display:flex; align-items:center; gap:10px; background:rgba(4,8,16,.55); border:1px solid var(--border); border-radius:10px; padding:8px 12px; transition:.2s; position:relative; overflow:hidden;}
+.scam-item::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent-2); opacity:.7;}
+.scam-item:nth-child(1)::before{background:var(--danger); box-shadow:0 0 8px var(--danger);}
+.scam-item:nth-child(2)::before{background:var(--warn); box-shadow:0 0 8px var(--warn);}
+.scam-item:hover{border-color:var(--border-glow); transform:translateX(4px);}
+.scam-rank{width:25px; height:25px; flex:none; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; font-family:'Orbitron'; color:#04111f;}
+.scam-item:nth-child(1) .scam-rank{background:linear-gradient(135deg,var(--danger),#ff7b93); color:#fff;}
 .scam-item:nth-child(2) .scam-rank{background:linear-gradient(135deg,var(--warn),var(--gold)); color:#221700;}
-.scam-item:nth-child(n+3) .scam-rank{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f;}
-.scam-item .txt{font-size:12.5px; color:var(--text-0); line-height:1.4; flex:1;}
-.scam-item .tag{font-size:10px; color:var(--text-2); white-space:nowrap;}
+.scam-item:nth-child(n+3) .scam-rank{background:linear-gradient(135deg,var(--accent-2),var(--accent));}
+.scam-item .txt{font-size:12px; line-height:1.45; flex:1;}
+.scam-item .tag{font-size:9.5px; color:var(--text-2); white-space:nowrap;}
 
-/* measures */
-.measures-wrap{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-.measure-col-hd{font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:7px; text-transform:uppercase; letter-spacing:.5px;}
-.measure-item{
-  display:flex; gap:10px; padding:9px 0; border-bottom:1px dashed var(--border-soft); font-size:12.5px;
+/* ===== DISTRICT ===== */
+.district-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:11px;}
+.district-card{
+  background:rgba(4,8,16,.55); border:1px solid var(--border); border-radius:13px; padding:14px 8px 12px; text-align:center;
+  position:relative; overflow:hidden; transition:.25s;
 }
+.district-card::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 0%, rgba(0,229,255,.07), transparent 70%);}
+.district-card:hover{border-color:var(--border-glow); transform:translateY(-4px); box-shadow:0 8px 22px rgba(0,0,0,.4);}
+.district-card .name{font-size:11.5px; font-weight:800; margin-bottom:9px; min-height:30px; display:flex; align-items:center; justify-content:center; position:relative;}
+.ring{position:relative; width:68px; height:68px; margin:0 auto;}
+.ring svg{transform:rotate(-90deg);}
+.ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13.5px; font-weight:900; font-family:'Orbitron';}
+.district-card .metrics{display:flex; justify-content:space-around; margin-top:9px; font-size:8.5px; color:var(--text-2); position:relative;}
+.district-card .metrics b{display:block; color:var(--text-0); font-size:10.5px; font-weight:800;}
+
+/* ===== MEASURES ===== */
+.measures-wrap{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.measure-col-hd{font-size:12px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; gap:7px; letter-spacing:.5px; align-items:center;}
+.measure-item{display:flex; gap:10px; padding:8px 0; border-bottom:1px dashed var(--border); font-size:12px;}
 .measure-item:last-child{border-bottom:none;}
-.measure-item .mnum{flex:none; width:30px; font-weight:800; color:var(--accent); font-size:12px;}
-.measure-item .mbody .mdesc{color:var(--text-0); line-height:1.5;}
-.measure-item .mbody .mowner{color:var(--text-2); font-size:11px; margin-top:3px;}
-.measure-item .mstatus{flex:none; align-self:flex-start; font-size:9.5px; padding:3px 8px; border-radius:999px; background:rgba(25,227,164,.12); color:var(--good); border:1px solid rgba(25,227,164,.35); font-weight:700; white-space:nowrap;}
+.measure-item .mnum{flex:none; width:30px; font-weight:900; color:var(--accent); font-family:'Orbitron'; font-size:11px; padding-top:2px;}
+.measure-item .mbody{flex:1;}
+.measure-item .mdesc{line-height:1.5;}
+.measure-item .mowner{color:var(--text-2); font-size:10.5px; margin-top:3px;}
+.measure-item .mstatus{flex:none; align-self:flex-start; font-size:9px; padding:3px 8px; border-radius:999px; background:rgba(25,227,164,.1); color:var(--good); border:1px solid rgba(25,227,164,.35); font-weight:800; white-space:nowrap;}
 
-/* contact strip */
-.bottom-grid{display:grid; grid-template-columns:1.6fr 1fr; gap:14px;}
-.contact-card{display:flex; align-items:center; gap:14px; padding:8px 4px;}
-.contact-avatar{
-  width:54px; height:54px; border-radius:14px; flex:none;
-  background:linear-gradient(135deg, rgba(0,145,255,.25), rgba(0,229,255,.08));
-  border:1px solid rgba(0,229,255,.4); display:flex; align-items:center; justify-content:center; font-size:22px;
-}
-.contact-info .name{font-size:14.5px; font-weight:800; color:var(--text-0);}
-.contact-info .role{font-size:12px; color:var(--text-1); margin-top:2px;}
-.contact-info .org{font-size:11.5px; color:var(--text-2);}
-.contact-phone{margin-left:auto; text-align:right;}
-.contact-phone .num{font-size:18px; font-weight:800; color:var(--accent); letter-spacing:.5px;}
-.contact-phone .lbl{font-size:10px; color:var(--text-2);}
-
-.hotline-strip{display:flex; gap:10px; flex-wrap:wrap;}
+/* ===== HOTLINE ===== */
+.hotline-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:11px;}
 .hotline{
-  flex:1; min-width:140px; background:rgba(255,61,87,.07); border:1px solid rgba(255,61,87,.3); border-radius:12px;
-  padding:12px; text-align:center;
+  background:rgba(255,45,85,.05); border:1px solid rgba(255,45,85,.3); border-radius:13px; padding:14px; text-align:center;
+  position:relative; overflow:hidden; transition:.2s;
 }
-.hotline .num{font-size:20px; font-weight:900; color:var(--danger-soft);}
-.hotline .lbl{font-size:10.5px; color:var(--text-1); margin-top:3px;}
+.hotline:hover{background:rgba(255,45,85,.1); box-shadow:0 0 18px rgba(255,45,85,.15);}
+.hotline .num{font-size:26px; font-weight:900; color:var(--danger-soft); font-family:'Orbitron'; text-shadow:0 0 16px rgba(255,45,85,.4);}
+.hotline .lbl{font-size:10.5px; color:var(--text-1); margin-top:4px; line-height:1.5;}
 
-footer.foot{margin-top:18px; text-align:center; font-size:11px; color:var(--text-2); padding-bottom:10px;}
+footer.foot{margin-top:16px; text-align:center; font-size:11px; color:var(--text-2);}
 footer.foot a{color:var(--text-1); text-decoration:none;}
 
-/* ===== Login overlay ===== */
-.overlay{
-  position:fixed; inset:0; z-index:50; background:rgba(2,4,10,.82); backdrop-filter:blur(6px);
-  display:none; align-items:center; justify-content:center;
-}
+/* ===== LOGIN ===== */
+.overlay{position:fixed; inset:0; z-index:150; background:rgba(2,4,9,.85); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center;}
 .overlay.show{display:flex;}
-.login-box{
-  width:330px; background:linear-gradient(165deg, rgba(16,26,48,.97), rgba(8,12,22,.97));
-  border:1px solid var(--border); border-radius:18px; padding:28px; text-align:center;
-}
-.login-box .ttl{font-size:15px; font-weight:800; margin-bottom:4px;}
-.login-box .sub{font-size:11.5px; color:var(--text-2); margin-bottom:18px;}
-.login-box input{
-  width:100%; padding:13px; border-radius:10px; border:1px solid var(--border); background:#070b16;
-  color:var(--text-0); font-size:20px; text-align:center; letter-spacing:8px; font-weight:800; margin-bottom:14px;
-}
-.login-box input:focus{outline:none; border-color:var(--accent);}
+.login-box{width:330px; background:linear-gradient(165deg, rgba(10,18,34,.98), rgba(4,8,16,.98)); border:1px solid var(--border); border-radius:18px; padding:28px; text-align:center; position:relative;}
+.login-box .ttl{font-size:15px; font-weight:800;}
+.login-box .sub{font-size:11.5px; color:var(--text-2); margin:5px 0 18px;}
+.login-box input{width:100%; padding:13px; border-radius:10px; border:1px solid var(--border); background:#03060d; color:var(--text-0); font-size:20px; text-align:center; letter-spacing:8px; font-weight:800; margin-bottom:12px; font-family:'Orbitron';}
+.login-box input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 14px rgba(0,229,255,.2);}
 .login-box .err{color:var(--danger-soft); font-size:11.5px; min-height:16px; margin-bottom:8px;}
 .btn-row{display:flex; gap:8px;}
-.btn-row button{flex:1; padding:11px; border-radius:10px; border:none; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;}
+.btn-row button{flex:1; padding:11px; border-radius:10px; border:none; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;}
 .btn-go{background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f;}
-.btn-cancel{background:rgba(255,255,255,.06); color:var(--text-1); border:1px solid var(--border) !important;}
+.btn-cancel{background:rgba(255,255,255,.05); color:var(--text-1); border:1px solid var(--border) !important;}
 
-/* presentation mode */
-.btn-present{
-  display:flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; cursor:pointer;
-  background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text-1); font-weight:700; font-size:13px; font-family:inherit;
-}
-body.present .topbar, body.present .btn-admin, body.present footer.foot{opacity:0;}
-body.present .wrap{padding-top:0;}
+body.present .topbar,body.present footer.foot,body.present .ticker{display:none;}
 
-@media (max-width:1180px){
+@media (max-width:1280px){
   .kpi-row{grid-template-columns:repeat(2,1fr);}
-  .main-grid{grid-template-columns:1fr; }
+  .main-grid{grid-template-columns:1fr;}
+  .district-grid{grid-template-columns:repeat(3,1fr);}
   .measures-wrap{grid-template-columns:1fr;}
-  .bottom-grid{grid-template-columns:1fr;}
-  .district-grid{grid-template-columns:repeat(2,1fr);}
+  .hotline-strip{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
-<div class="grid-overlay"></div>
+
+<!-- BOOT SPLASH -->
+<div id="boot">
+  <div class="crest-wrap">
+    <div class="orbit"></div>
+    <div class="orbit o2"></div>
+    <img src="logo.png" alt="ตราจังหวัด">
+  </div>
+  <div class="bt1 mono">CYBER COMMAND CENTER</div>
+  <div class="bt2">ศูนย์อำนวยการป้องกันและปราบปราม<br>อาชญากรรมทางเทคโนโลยี จังหวัดหนองบัวลำภู</div>
+  <div class="loadbar"><i id="bootBar"></i></div>
+  <div class="bootlog" id="bootLog">INITIALIZING...</div>
+</div>
+
+<canvas id="particles"></canvas>
+<div class="aurora"></div>
 <div class="scanlines"></div>
 
 <div class="wrap">
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="tk-label"><span class="blink"></span>เตือนภัย</div>
+    <div class="tk-track"><div class="tk-move" id="tickerMove">กำลังโหลดข้อมูล...</div></div>
+  </div>
 
   <header class="topbar">
     <div class="brand">
       <img class="crest" src="logo.png" alt="ตราจังหวัดหนองบัวลำภู">
       <div class="ttl">
-        <div class="t1">COMMAND CENTER · ศูนย์อำนวยการ</div>
+        <div class="t1 mono">CYBER COMMAND CENTER</div>
         <div class="t2">การป้องกันและปราบปรามอาชญากรรมทางเทคโนโลยี</div>
         <div class="t3">จังหวัดหนองบัวลำภู</div>
       </div>
     </div>
     <div class="topbar-right">
-      <div class="status-pill"><span class="dot"></span> ระบบออนไลน์</div>
+      <div class="status-pill"><span class="dot"></span> LIVE</div>
       <div class="clock-box">
         <div class="date" id="dateBox">-</div>
-        <div class="time" id="timeBox">--:--:--</div>
+        <div class="time mono" id="timeBox">--:--:--</div>
       </div>
-      <button class="btn-present" onclick="togglePresent()">🖥️ โหมดนำเสนอ</button>
-      <button class="btn-admin" onclick="openLogin()">🔒 แก้ไขข้อมูล</button>
+      <button class="btn-hd btn-present" onclick="togglePresent()">🖥️ นำเสนอ</button>
+      <button class="btn-hd btn-admin" onclick="openLogin()">🔒 แก้ไขข้อมูล</button>
     </div>
   </header>
 
   <!-- KPI -->
   <div class="kpi-row">
-    <div class="kpi danger">
+    <div class="kpi k1">
       <div class="lbl">📁 จำนวนคดีสะสม (2566–ปัจจุบัน)</div>
-      <div class="val" id="kpiCases">-</div>
-      <div class="sub trend-up" id="kpiCasesSub">กำลังโหลด...</div>
+      <div class="val"><span id="kpiCases">0</span> <span style="font-size:15px;">คดี</span></div>
+      <div class="sub" id="kpiCasesSub">-</div>
+      <canvas class="spark" id="spark1" width="90" height="34"></canvas>
+      <div class="glowline"></div>
     </div>
-    <div class="kpi warn">
+    <div class="kpi k2">
       <div class="lbl">💸 มูลค่าความเสียหายสะสม</div>
-      <div class="val" id="kpiDamage">-</div>
-      <div class="sub" id="kpiDamageSub">บาท</div>
+      <div class="val"><span id="kpiDamage">0</span> <span style="font-size:15px;">ลบ.</span></div>
+      <div class="sub" id="kpiDamageSub">-</div>
+      <canvas class="spark" id="spark2" width="90" height="34"></canvas>
+      <div class="glowline"></div>
     </div>
-    <div class="kpi accent">
+    <div class="kpi k3">
       <div class="lbl">📊 ความเสียหายเฉลี่ยต่อคดี</div>
-      <div class="val" id="kpiAvg">-</div>
-      <div class="sub" id="kpiAvgSub">บาท/คดี</div>
+      <div class="val"><span id="kpiAvg">0</span></div>
+      <div class="sub">บาท / คดี</div>
+      <div class="glowline"></div>
     </div>
-    <div class="kpi good">
+    <div class="kpi k4">
       <div class="lbl">✅ ผลการดำเนินงานเป้าหมายภาพรวม</div>
-      <div class="val" id="kpiTarget">-</div>
+      <div class="val"><span id="kpiTarget">0</span>%</div>
       <div class="sub" id="kpiTargetSub">6 อำเภอ · มิ.ย.–ก.ย. 69</div>
+      <div class="glowline"></div>
     </div>
   </div>
 
-  <!-- MAIN GRID -->
+  <!-- MAIN -->
   <div class="main-grid">
     <div class="panel">
       <div class="panel-hd">
         <div class="title"><span class="bar"></span>แนวโน้มสถิติคดีรายปี</div>
-        <div class="badge">ปี 2566–2569</div>
+        <div class="badge mono">2566–2569</div>
       </div>
       <div class="chart-box"><canvas id="trendChart"></canvas></div>
     </div>
     <div class="panel">
       <div class="panel-hd">
         <div class="title"><span class="bar"></span>รูปแบบการหลอกลวงที่พบบ่อย</div>
-        <div class="badge">TOP RISK</div>
+        <div class="badge mono">TOP RISK</div>
       </div>
       <div class="scam-list" id="scamList"></div>
     </div>
     <div class="panel">
       <div class="panel-hd">
-        <div class="title"><span class="bar"></span>สัดส่วนความเสียหายรายปี</div>
-        <div class="badge">บาท</div>
+        <div class="title"><span class="bar"></span>ระดับสถานการณ์ภัยไซเบอร์</div>
+        <div class="badge mono">THREAT LV</div>
       </div>
-      <div class="chart-box"><canvas id="doughnutChart"></canvas></div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 210 150" id="gaugeSvg"></svg>
+        <div class="gauge-lbl">
+          <div class="g-val" id="gaugeVal">-</div>
+          <div class="g-txt" id="gaugeTxt">-</div>
+        </div>
+        <div class="gauge-note">ดัชนีเทียบจำนวนคดีปีล่าสุด (ปรับเป็นรายปี)<br>กับค่าเฉลี่ยย้อนหลัง · 50 = เท่าค่าเฉลี่ย</div>
+      </div>
     </div>
   </div>
 
-  <!-- DISTRICT TARGETS -->
-  <div class="panel" style="margin-bottom:14px;">
+  <!-- DISTRICT -->
+  <div class="panel" style="margin-bottom:13px;">
     <div class="panel-hd">
       <div class="title"><span class="bar"></span>เป้าหมายและผลการดำเนินงานรายอำเภอ</div>
-      <div class="badge" id="districtBadge">มิ.ย.–ก.ย. 2569</div>
+      <div class="badge mono">มิ.ย.–ก.ย. 2569</div>
     </div>
     <div class="district-grid" id="districtGrid"></div>
   </div>
 
   <!-- MEASURES -->
-  <div class="panel" style="margin-bottom:14px;">
+  <div class="panel" style="margin-bottom:13px;">
     <div class="panel-hd">
       <div class="title"><span class="bar"></span>มาตรการและแนวทางดำเนินงาน</div>
-      <div class="badge">2 ด้านหลัก</div>
+      <div class="badge mono">2 MISSIONS</div>
     </div>
     <div class="measures-wrap" id="measuresWrap"></div>
   </div>
 
-  <!-- BOTTOM -->
-  <div class="bottom-grid" style="grid-template-columns:1fr;">
-    <div class="panel">
-      <div class="panel-hd">
-        <div class="title"><span class="bar"></span>สายด่วนแจ้งเหตุ</div>
-        <div class="badge">HOTLINE</div>
-      </div>
-      <div class="hotline-strip">
-        <div class="hotline"><div class="num">1441</div><div class="lbl">AOC ศูนย์ปฏิบัติการแก้ไขปัญหาอาชญากรรมออนไลน์</div></div>
-        <div class="hotline"><div class="num">191</div><div class="lbl">แจ้งเหตุด่วนเหตุร้าย ตำรวจ</div></div>
-        <div class="hotline"><div class="num">1599</div><div class="lbl">ตำรวจไซเบอร์</div></div>
-      </div>
+  <!-- HOTLINE -->
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="title"><span class="bar"></span>สายด่วนแจ้งเหตุ</div>
+      <div class="badge mono">HOTLINE</div>
+    </div>
+    <div class="hotline-strip">
+      <div class="hotline"><div class="num">1441</div><div class="lbl">AOC ศูนย์ปฏิบัติการแก้ไขปัญหาอาชญากรรมออนไลน์</div></div>
+      <div class="hotline"><div class="num">191</div><div class="lbl">แจ้งเหตุด่วนเหตุร้าย ตำรวจ</div></div>
+      <div class="hotline"><div class="num">1599</div><div class="lbl">ตำรวจไซเบอร์</div></div>
     </div>
   </div>
 
@@ -344,7 +392,7 @@ body.present .wrap{padding-top:0;}
   </footer>
 </div>
 
-<!-- LOGIN OVERLAY -->
+<!-- LOGIN -->
 <div class="overlay" id="loginOverlay">
   <div class="login-box">
     <div class="ttl">🔒 ยืนยันรหัสผ่าน</div>
@@ -361,48 +409,85 @@ body.present .wrap{padding-top:0;}
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbydQei_fURKWmqqhxgactVV5KPuJntaebQXJbfDV5qEXR8D0gZZRGEUepRkMzFaHXW-/exec';
 
-let DATA = null;
-let trendChart, doughnutChart;
+let DATA=null, trendChart;
 
-/* ---------- Clock ---------- */
+/* ===== BOOT SEQUENCE ===== */
+const bootMsgs=['INITIALIZING SYSTEM...','CONNECTING SECURE CHANNEL...','LOADING PROVINCE DATA...','DECRYPTING RECORDS...','SYNCING 6 DISTRICTS...','READY'];
+(function bootSeq(){
+  let i=0;
+  const bar=document.getElementById('bootBar'), log=document.getElementById('bootLog');
+  const t=setInterval(()=>{
+    i++;
+    bar.style.width=Math.min(i/bootMsgs.length*100,100)+'%';
+    log.textContent=bootMsgs[Math.min(i-1,bootMsgs.length-1)];
+    if(i>=bootMsgs.length){ clearInterval(t); setTimeout(()=>document.getElementById('boot').classList.add('done'),400); }
+  },420);
+})();
+
+/* ===== PARTICLE NETWORK ===== */
+(function(){
+  const cv=document.getElementById('particles'), ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){ W=cv.width=innerWidth; H=cv.height=innerHeight;
+    const n=Math.min(Math.floor(W*H/16000),110);
+    pts=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}));
+  }
+  resize(); addEventListener('resize',resize);
+  (function loop(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,1.3,0,7);
+      ctx.fillStyle='rgba(0,229,255,.55)'; ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=dx*dx+dy*dy;
+      if(d<12000){ ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle='rgba(0,145,255,'+(.14*(1-d/12000))+')'; ctx.lineWidth=.7; ctx.stroke(); }
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ===== CLOCK ===== */
 function tickClock(){
-  const now = new Date();
-  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
-  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  document.getElementById('dateBox').textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
-  document.getElementById('timeBox').textContent = now.toLocaleTimeString('th-TH',{hour12:false});
+  const now=new Date();
+  const days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  document.getElementById('dateBox').textContent='วัน'+days[now.getDay()]+'ที่ '+now.getDate()+' '+months[now.getMonth()]+' '+(now.getFullYear()+543);
+  document.getElementById('timeBox').textContent=now.toLocaleTimeString('th-TH',{hour12:false});
 }
 setInterval(tickClock,1000); tickClock();
 
-/* ---------- JSONP fetch ---------- */
+/* ===== JSONP ===== */
 function jsonp(params){
   return new Promise((resolve,reject)=>{
-    const cbName = 'cb_' + Math.random().toString(36).slice(2);
-    window[cbName] = (data)=>{ resolve(data); delete window[cbName]; script.remove(); };
-    const qs = new URLSearchParams({...params, callback:cbName}).toString();
-    const script = document.createElement('script');
-    script.src = API_URL + '?' + qs;
-    script.onerror = ()=>{ reject(new Error('network error')); delete window[cbName]; };
-    document.body.appendChild(script);
+    const cb='cb_'+Math.random().toString(36).slice(2);
+    window[cb]=d=>{resolve(d); delete window[cb]; s.remove();};
+    const s=document.createElement('script');
+    s.src=API_URL+'?'+new URLSearchParams({...params,callback:cb});
+    s.onerror=()=>{reject(new Error('net')); delete window[cb];};
+    document.body.appendChild(s);
   });
 }
 
-const FALLBACK = {
+const FALLBACK={
   yearly:[
     {'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857},
     {'ปี':'2567','จำนวนคดี':999,'มูลค่าความเสียหาย':56254078},
     {'ปี':'2568','จำนวนคดี':932,'มูลค่าความเสียหาย':48875912},
     {'ปี':'2569 (ต.ค.68-พ.ค.69)','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776}
   ],
-  district:[
-    {'อำเภอ':'เมืองหนองบัวลำภู','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
-    {'อำเภอ':'ศรีบุญเรือง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
-    {'อำเภอ':'นากลาง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
-    {'อำเภอ':'โนนสัง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
-    {'อำเภอ':'นาวัง','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100},
-    {'อำเภอ':'สุวรรณคูหา','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}
+  district:['เมืองหนองบัวลำภู','ศรีบุญเรือง','นากลาง','โนนสัง','นาวัง','สุวรรณคูหา'].map(a=>({'อำเภอ':a,'เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100})),
+  scamTypes:[
+    {'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'},
+    {'ลำดับ':2,'รูปแบบ':'หลอกให้โอนเงินเพื่อหารายได้พิเศษ / งานออนไลน์','สัดส่วน':'อันดับ 2'},
+    {'ลำดับ':3,'รูปแบบ':'อ้างเป็นเจ้าหน้าที่ตำรวจ/สรรพากร/การไฟฟ้า สร้างความกลัวให้โอนเงิน','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
+    {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
   ],
-  contacts:[{'ลำดับ':1,'ชื่อสกุล':'พ.ต.ต.วิชาญ จันทร์พิมพ์','หน่วยงาน':'ตำรวจภูธรจังหวัดหนองบัวลำภู','ตำแหน่ง':'สารวัตรฝ่ายอำนวยการ','เบอร์โทร':'089-174-7869'}],
   measures:[
     {'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'การบล็อกลิงก์และเว็บพนัน: ปิดกั้น URL/IP เว็บหลอกลวง-เว็บพนัน ภายใน 24 ชม.','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
     {'ด้าน':'การปราบปราม','ลำดับ':'1.2','รายละเอียด':'กวาดล้างซิมม้า: ผู้ถือซิมเกิน 5 ซิม ต้องยืนยันตัวตน (KYC)','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
@@ -416,208 +501,253 @@ const FALLBACK = {
     {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.2','รายละเอียด':'หลีกเลี่ยงการให้ข้อมูลส่วนตัว/การเงินกับคนแปลกหน้า','หน่วยงานรับผิดชอบ':'สำนักงานสถิติจังหวัด','สถานะ':'ดำเนินการต่อเนื่อง'},
     {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.3','รายละเอียด':'ตรวจสอบข้อมูลกับหน่วยงานที่เกี่ยวข้องโดยตรงก่อนเชื่อผู้แอบอ้าง','หน่วยงานรับผิดชอบ':'สำนักงานประชาสัมพันธ์','สถานะ':'ดำเนินการต่อเนื่อง'},
     {'ด้าน':'ประชาสัมพันธ์','ลำดับ':'2.4','รายละเอียด':'แนะนำแจ้งความ/แจ้งหน่วยงานทันทีหากตกเป็นเหยื่อ ไม่ต้องอาย','หน่วยงานรับผิดชอบ':'อำเภอทุกอำเภอ','สถานะ':'ดำเนินการต่อเนื่อง'}
-  ],
-  scamTypes:[
-    {'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'},
-    {'ลำดับ':2,'รูปแบบ':'หลอกให้โอนเงินเพื่อหารายได้พิเศษ / งานออนไลน์','สัดส่วน':'อันดับ 2'},
-    {'ลำดับ':3,'รูปแบบ':'อ้างเป็นเจ้าหน้าที่ตำรวจ/สรรพากร/การไฟฟ้า สร้างความกลัวให้โอนเงิน','สัดส่วน':'พบบ่อย'},
-    {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
-    {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
-    {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
   ]
 };
 
 async function loadData(){
   try{
-    if(!API_URL || API_URL.indexOf('PASTE_')===0) throw new Error('no api');
-    const res = await jsonp({action:'getAll'});
-    if(res.status==='ok'){ DATA = res.data; }
-    else throw new Error(res.message||'error');
-  }catch(e){
-    DATA = FALLBACK;
-  }
+    const res=await jsonp({action:'getAll'});
+    if(res.status==='ok' && res.data && (res.data.yearly||[]).length) DATA=res.data;
+    else throw new Error('empty');
+  }catch(e){ DATA=FALLBACK; }
   render();
 }
 
-function fmt(n){ return Number(n).toLocaleString('th-TH'); }
+function fmt(n){return Number(n).toLocaleString('th-TH');}
+
+/* animated count-up */
+function countUp(el, target, opts){
+  opts=opts||{};
+  const dur=opts.dur||1400, dec=opts.dec||0;
+  const start=performance.now();
+  function step(t){
+    const p=Math.min((t-start)/dur,1), ease=1-Math.pow(1-p,3);
+    el.textContent=(target*ease).toLocaleString('th-TH',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function sparkline(id, data, color){
+  const cv=document.getElementById(id); if(!cv||data.length<2) return;
+  const ctx=cv.getContext('2d'); const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const max=Math.max.apply(null,data), min=Math.min.apply(null,data);
+  const xs=i=>i/(data.length-1)*(W-6)+3;
+  const ys=v=>H-4-((v-min)/(max-min||1))*(H-8);
+  ctx.beginPath();
+  data.forEach((v,i)=> i?ctx.lineTo(xs(i),ys(v)):ctx.moveTo(xs(i),ys(v)));
+  ctx.strokeStyle=color; ctx.lineWidth=1.6; ctx.stroke();
+  data.forEach((v,i)=>{ctx.beginPath();ctx.arc(xs(i),ys(v),1.8,0,7);ctx.fillStyle=color;ctx.fill();});
+}
 
 function render(){
-  const y = DATA.yearly||[];
-  const totalCases = y.reduce((s,r)=>s+Number(r['จำนวนคดี']||0),0);
-  const totalDamage = y.reduce((s,r)=>s+Number(r['มูลค่าความเสียหาย']||0),0);
-  const avgPerCase = totalCases? Math.round(totalDamage/totalCases):0;
+  const y=DATA.yearly||[];
+  const cases=y.map(r=>Number(r['จำนวนคดี']||0));
+  const damages=y.map(r=>Number(r['มูลค่าความเสียหาย']||0));
+  const totalCases=cases.reduce((a,b)=>a+b,0);
+  const totalDamage=damages.reduce((a,b)=>a+b,0);
+  const avgPerCase=totalCases?Math.round(totalDamage/totalCases):0;
 
-  document.getElementById('kpiCases').textContent = fmt(totalCases)+' คดี';
-  document.getElementById('kpiCasesSub').textContent = `สะสม ${y.length} ปีงบประมาณ`;
-  document.getElementById('kpiDamage').textContent = (totalDamage/1e6).toLocaleString('th-TH',{maximumFractionDigits:2})+' ลบ.';
-  document.getElementById('kpiDamageSub').textContent = fmt(totalDamage)+' บาท';
-  document.getElementById('kpiAvg').textContent = fmt(avgPerCase);
-  document.getElementById('kpiAvgSub').textContent = 'บาท / คดี';
+  countUp(document.getElementById('kpiCases'), totalCases);
+  countUp(document.getElementById('kpiDamage'), totalDamage/1e6, {dec:1});
+  countUp(document.getElementById('kpiAvg'), avgPerCase);
+  document.getElementById('kpiCasesSub').textContent='สะสม '+y.length+' ปีงบประมาณ';
+  document.getElementById('kpiDamageSub').textContent=fmt(totalDamage)+' บาท';
 
-  // district overall
-  const d = DATA.district||[];
-  let avgTarget = 0;
+  sparkline('spark1', cases, 'rgba(255,107,129,.9)');
+  sparkline('spark2', damages, 'rgba(255,176,32,.9)');
+
+  const d=DATA.district||[];
+  let avgTarget=0;
   if(d.length){
-    const sum = d.reduce((s,r)=> s + (Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3, 0);
-    avgTarget = Math.round(sum/d.length);
+    const sum=d.reduce((s,r)=>s+(Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3,0);
+    avgTarget=Math.round(sum/d.length);
   }
-  document.getElementById('kpiTarget').textContent = avgTarget+'%';
-  document.getElementById('kpiTargetSub').textContent = avgTarget>=100? 'บรรลุเป้าหมายครบทุกอำเภอ' : `${d.length} อำเภอ · มิ.ย.–ก.ย. 69`;
+  countUp(document.getElementById('kpiTarget'), avgTarget);
+  document.getElementById('kpiTargetSub').textContent=avgTarget>=100?'บรรลุเป้าหมายครบทุกอำเภอ':d.length+' อำเภอ · มิ.ย.–ก.ย. 69';
 
-  document.getElementById('lastUpdate').textContent = DATA.updatedAt ? new Date(DATA.updatedAt).toLocaleString('th-TH') : new Date().toLocaleString('th-TH');
+  document.getElementById('lastUpdate').textContent=DATA.updatedAt?new Date(DATA.updatedAt).toLocaleString('th-TH'):new Date().toLocaleString('th-TH');
 
+  renderTicker(DATA.scamTypes||[], y);
   renderTrend(y);
-  renderDoughnut(y);
   renderScamList(DATA.scamTypes||[]);
+  renderGauge(y);
   renderDistricts(d);
   renderMeasures(DATA.measures||[]);
 }
 
+function renderTicker(scams, y){
+  const latest=y[y.length-1]||{};
+  const items=[
+    '📢 ปี '+(latest['ปี']||'-')+' รับแจ้ง <b>'+fmt(latest['จำนวนคดี']||0)+' คดี</b> ความเสียหาย <b>'+fmt(latest['มูลค่าความเสียหาย']||0)+' บาท</b>'
+  ].concat(scams.map(s=>'⚠️ ระวังภัย: <b>'+s['รูปแบบ']+'</b>'))
+   .concat([
+    '☎️ ตกเป็นเหยื่อ โทรแจ้ง <b>AOC 1441</b> ระงับบัญชีม้าภายใน 3 ชั่วโมง',
+    '🚫 อย่าโอนเงินให้คนแปลกหน้า แม้อ้างเป็นเจ้าหน้าที่รัฐ'
+   ]);
+  document.getElementById('tickerMove').innerHTML=items.join(' &nbsp;&nbsp;•&nbsp;&nbsp; ');
+}
+
 function renderTrend(y){
-  const ctx = document.getElementById('trendChart');
-  const labels = y.map(r=>r['ปี']);
-  const cases = y.map(r=>Number(r['จำนวนคดี']||0));
-  const damage = y.map(r=>Number(r['มูลค่าความเสียหาย']||0)/1e6);
-  if(trendChart) trendChart.destroy();
-  trendChart = new Chart(ctx,{
+  const ctx=document.getElementById('trendChart');
+  const labels=y.map(r=>r['ปี']);
+  const cases=y.map(r=>Number(r['จำนวนคดี']||0));
+  const damage=y.map(r=>Number(r['มูลค่าความเสียหาย']||0)/1e6);
+  if(trendChart)trendChart.destroy();
+  const grad=ctx.getContext('2d').createLinearGradient(0,0,0,230);
+  grad.addColorStop(0,'rgba(0,229,255,.28)'); grad.addColorStop(1,'rgba(0,229,255,0)');
+  trendChart=new Chart(ctx,{
     type:'bar',
-    data:{labels, datasets:[
-      {type:'bar', label:'จำนวนคดี', data:cases, backgroundColor:'rgba(255,61,87,0.55)', borderRadius:6, yAxisID:'y', order:2, barPercentage:.55},
-      {type:'line', label:'ความเสียหาย (ลบ.)', data:damage, borderColor:'#00e5ff', backgroundColor:'rgba(0,229,255,.15)', tension:.35, fill:true, yAxisID:'y1', pointRadius:4, pointBackgroundColor:'#00e5ff', order:1}
+    data:{labels,datasets:[
+      {type:'bar',label:'จำนวนคดี',data:cases,backgroundColor:'rgba(255,45,85,.5)',hoverBackgroundColor:'rgba(255,45,85,.8)',borderRadius:7,yAxisID:'y',order:2,barPercentage:.5},
+      {type:'line',label:'ความเสียหาย (ลบ.)',data:damage,borderColor:'#00e5ff',backgroundColor:grad,tension:.4,fill:true,yAxisID:'y1',pointRadius:4.5,pointBackgroundColor:'#00e5ff',pointBorderColor:'#04111f',pointBorderWidth:2,order:1}
     ]},
     options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index', intersect:false},
-      plugins:{ legend:{labels:{color:'#9fb0d0', font:{family:'Noto Sans Thai', size:11}}},
-        tooltip:{backgroundColor:'#0c1424', borderColor:'#1d2c4d', borderWidth:1, titleColor:'#eaf2ff', bodyColor:'#9fb0d0'} },
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:1500,easing:'easeOutQuart'},
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#8fa3c8',font:{family:'Noto Sans Thai',size:11},usePointStyle:true}},
+        tooltip:{backgroundColor:'#0a1222',borderColor:'#15233f',borderWidth:1,titleColor:'#eaf4ff',bodyColor:'#8fa3c8',padding:10}},
       scales:{
-        x:{ ticks:{color:'#67769c', font:{family:'Noto Sans Thai', size:10}}, grid:{color:'rgba(255,255,255,.04)'} },
-        y:{ position:'left', ticks:{color:'#67769c', font:{size:10}}, grid:{color:'rgba(255,255,255,.05)'}, title:{display:true,text:'คดี',color:'#67769c',font:{size:10}} },
-        y1:{ position:'right', ticks:{color:'#67769c', font:{size:10}}, grid:{display:false}, title:{display:true,text:'ล้านบาท',color:'#67769c',font:{size:10}} }
+        x:{ticks:{color:'#5a6a8f',font:{family:'Noto Sans Thai',size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+        y:{position:'left',ticks:{color:'#5a6a8f',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'},title:{display:true,text:'คดี',color:'#5a6a8f',font:{size:10}}},
+        y1:{position:'right',ticks:{color:'#5a6a8f',font:{size:10}},grid:{display:false},title:{display:true,text:'ล้านบาท',color:'#5a6a8f',font:{size:10}}}
       }
     }
   });
 }
 
-function renderDoughnut(y){
-  const ctx = document.getElementById('doughnutChart');
-  const labels = y.map(r=>r['ปี']);
-  const damage = y.map(r=>Number(r['มูลค่าความเสียหาย']||0));
-  if(doughnutChart) doughnutChart.destroy();
-  const colors = ['#00e5ff','#0091ff','#ffb020','#ff3d57','#19e3a4'];
-  doughnutChart = new Chart(ctx,{
-    type:'doughnut',
-    data:{labels, datasets:[{data:damage, backgroundColor:colors, borderColor:'#0a0f1c', borderWidth:3}]},
-    options:{
-      responsive:true, maintainAspectRatio:false, cutout:'68%',
-      plugins:{ legend:{position:'bottom', labels:{color:'#9fb0d0', font:{family:'Noto Sans Thai', size:10.5}, boxWidth:10, padding:10}},
-      tooltip:{callbacks:{label:(c)=> c.label+': '+fmt(c.raw)+' บาท'}, backgroundColor:'#0c1424', borderColor:'#1d2c4d', borderWidth:1, titleColor:'#eaf2ff', bodyColor:'#9fb0d0'} }
-    }
-  });
-}
-
 function renderScamList(list){
-  const wrap = document.getElementById('scamList');
-  wrap.innerHTML = list.map(r=>`
-    <div class="scam-item">
-      <div class="scam-rank">${r['ลำดับ']}</div>
-      <div class="txt">${r['รูปแบบ']}</div>
-      <div class="tag">${r['สัดส่วน']||''}</div>
-    </div>`).join('');
+  document.getElementById('scamList').innerHTML=list.map(r=>
+    '<div class="scam-item">'+
+      '<div class="scam-rank">'+r['ลำดับ']+'</div>'+
+      '<div class="txt">'+r['รูปแบบ']+'</div>'+
+      '<div class="tag">'+(r['สัดส่วน']||'')+'</div>'+
+    '</div>').join('');
 }
 
-function ringSvg(pct, color){
-  const r=26, c=2*Math.PI*r;
-  const off = c - (Math.min(pct,100)/100)*c;
-  return `<svg width="64" height="64" viewBox="0 0 64 64">
-    <circle cx="32" cy="32" r="${r}" stroke="rgba(255,255,255,.08)" stroke-width="6" fill="none"/>
-    <circle cx="32" cy="32" r="${r}" stroke="${color}" stroke-width="6" fill="none"
-      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/>
-  </svg>`;
+/* ===== THREAT GAUGE (270°) ===== */
+function renderGauge(y){
+  const rows=y.map(r=>({label:String(r['ปี']),cases:Number(r['จำนวนคดี']||0)}));
+  if(rows.length<2) return;
+  const latest=rows[rows.length-1];
+  let latestAnnual=latest.cases;
+  const m=latest.label.match(/ต\.ค\..*?(ม\.ค\.|ก\.พ\.|มี\.ค\.|เม\.ย\.|พ\.ค\.|มิ\.ย\.|ก\.ค\.|ส\.ค\.|ก\.ย\.)/);
+  if(m){
+    const monthMap={'ม.ค.':4,'ก.พ.':5,'มี.ค.':6,'เม.ย.':7,'พ.ค.':8,'มิ.ย.':9,'ก.ค.':10,'ส.ค.':11,'ก.ย.':12};
+    const monthsElapsed=monthMap[m[1]]||12;
+    latestAnnual=Math.round(latest.cases/monthsElapsed*12);
+  }
+  const prev=rows.slice(0,-1).map(r=>r.cases);
+  const avg=prev.reduce((a,b)=>a+b,0)/prev.length;
+  let idx=Math.round(latestAnnual/avg*50);
+  idx=Math.max(5,Math.min(idx,100));
+
+  let level,color;
+  if(idx<35){level='เฝ้าระวังต่ำ';color='#19e3a4';}
+  else if(idx<55){level='เฝ้าระวัง';color='#ffcf5c';}
+  else if(idx<75){level='เสี่ยงสูง';color='#ffb020';}
+  else {level='วิกฤต';color='#ff2d55';}
+
+  const svg=document.getElementById('gaugeSvg');
+  const cx=105,cy=95,R=78;
+  const startA=-225;
+  function polar(a,r){const rad=a*Math.PI/180;return[cx+r*Math.cos(rad),cy+r*Math.sin(rad)];}
+  function arc(a1,a2,r,w,col,op){
+    const p1=polar(a1,r),p2=polar(a2,r);
+    const large=(a2-a1)>180?1:0;
+    return '<path d="M'+p1[0]+','+p1[1]+' A'+r+','+r+' 0 '+large+' 1 '+p2[0]+','+p2[1]+'" stroke="'+col+'" stroke-width="'+w+'" fill="none" stroke-linecap="round" opacity="'+op+'"/>';
+  }
+  const zones=[
+    {from:0,to:.35,c:'#19e3a4'},{from:.35,to:.55,c:'#ffcf5c'},{from:.55,to:.75,c:'#ffb020'},{from:.75,to:1,c:'#ff2d55'}
+  ];
+  let paths=arc(startA,startA+270,R,13,'#101a30',1);
+  zones.forEach(z=>{ paths+=arc(startA+270*z.from, startA+270*z.to, R, 13, z.c, .28); });
+  const fillTo=startA+270*(idx/100);
+  paths+=arc(startA, fillTo, R, 13, color, 1);
+  const n=polar(fillTo,R-22);
+  paths+='<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="'+color+'"/>';
+  paths+='<line x1="'+cx+'" y1="'+cy+'" x2="'+n[0]+'" y2="'+n[1]+'" stroke="'+color+'" stroke-width="3.5" stroke-linecap="round"/>';
+  for(let i=0;i<=10;i++){
+    const a=startA+270*i/10;
+    const t1=polar(a,R+11),t2=polar(a,R+16);
+    paths+='<line x1="'+t1[0]+'" y1="'+t1[1]+'" x2="'+t2[0]+'" y2="'+t2[1]+'" stroke="#2a3c63" stroke-width="1.6"/>';
+  }
+  svg.innerHTML=paths;
+  const gv=document.getElementById('gaugeVal');
+  gv.textContent=idx; gv.style.color=color; gv.style.textShadow='0 0 20px '+color+'66';
+  const gt=document.getElementById('gaugeTxt');
+  gt.textContent=level; gt.style.color=color;
+}
+
+function ringSvg(pct,color){
+  const r=27,c=2*Math.PI*r;
+  const off=c-(Math.min(pct,100)/100)*c;
+  return '<svg width="68" height="68" viewBox="0 0 68 68">'+
+    '<circle cx="34" cy="34" r="'+r+'" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none"/>'+
+    '<circle cx="34" cy="34" r="'+r+'" stroke="'+color+'" stroke-width="6" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round" style="filter:drop-shadow(0 0 5px '+color+');"/>'+
+  '</svg>';
 }
 
 function renderDistricts(list){
-  const wrap = document.getElementById('districtGrid');
-  wrap.innerHTML = list.map(r=>{
-    const avg = Math.round((Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3);
-    const color = avg>=100? '#19e3a4' : avg>=70? '#ffb020' : '#ff3d57';
-    return `<div class="district-card">
-      <div class="name">${r['อำเภอ']}</div>
-      <div class="ring">${ringSvg(avg,color)}<div class="pct" style="color:${color}">${avg}%</div></div>
-      <div class="metrics">
-        <div>รับแจ้ง<b>${r['ผลรับแจ้งคดี']}%</b></div>
-        <div>อายัด<b>${r['ผลติดตามอายัดเงิน']}%</b></div>
-        <div>สอบสวน<b>${r['ผลสอบสวนสรุปสำนวน']}%</b></div>
-      </div>
-    </div>`;
+  document.getElementById('districtGrid').innerHTML=list.map((r,i)=>{
+    const avg=Math.round((Number(r['ผลรับแจ้งคดี']||0)+Number(r['ผลติดตามอายัดเงิน']||0)+Number(r['ผลสอบสวนสรุปสำนวน']||0))/3);
+    const color=avg>=100?'#19e3a4':avg>=70?'#ffb020':'#ff2d55';
+    return '<div class="district-card" style="animation:fadeUp .5s '+(i*0.08)+'s both;">'+
+      '<div class="name">'+r['อำเภอ']+'</div>'+
+      '<div class="ring">'+ringSvg(avg,color)+'<div class="pct" style="color:'+color+'">'+avg+'%</div></div>'+
+      '<div class="metrics">'+
+        '<div>รับแจ้ง<b>'+r['ผลรับแจ้งคดี']+'%</b></div>'+
+        '<div>อายัด<b>'+r['ผลติดตามอายัดเงิน']+'%</b></div>'+
+        '<div>สอบสวน<b>'+r['ผลสอบสวนสรุปสำนวน']+'%</b></div>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
+const fadeStyle=document.createElement('style');
+fadeStyle.textContent='@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}';
+document.head.appendChild(fadeStyle);
+
 function renderMeasures(list){
-  const wrap = document.getElementById('measuresWrap');
-  const groups = {};
-  list.forEach(m=>{ (groups[m['ด้าน']] = groups[m['ด้าน']]||[]).push(m); });
-  const icons = {'การปราบปราม':'🛡️','ประชาสัมพันธ์':'📢'};
-  wrap.innerHTML = Object.keys(groups).map(g=>`
-    <div>
-      <div class="measure-col-hd">${icons[g]||'•'} ${g}</div>
-      ${groups[g].map(m=>`
-        <div class="measure-item">
-          <div class="mnum">${m['ลำดับ']}</div>
-          <div class="mbody">
-            <div class="mdesc">${m['รายละเอียด']}</div>
-            <div class="mowner">👤 ${m['หน่วยงานรับผิดชอบ']}</div>
-          </div>
-          <div class="mstatus">${m['สถานะ']||'ดำเนินการ'}</div>
-        </div>`).join('')}
-    </div>`).join('');
+  const groups={};
+  list.forEach(m=>{(groups[m['ด้าน']]=groups[m['ด้าน']]||[]).push(m);});
+  const icons={'การปราบปราม':'🛡️','ประชาสัมพันธ์':'📢'};
+  document.getElementById('measuresWrap').innerHTML=Object.keys(groups).map(g=>
+    '<div>'+
+      '<div class="measure-col-hd">'+(icons[g]||'•')+' '+g+'</div>'+
+      groups[g].map(m=>
+        '<div class="measure-item">'+
+          '<div class="mnum">'+m['ลำดับ']+'</div>'+
+          '<div class="mbody">'+
+            '<div class="mdesc">'+m['รายละเอียด']+'</div>'+
+            '<div class="mowner">👤 '+m['หน่วยงานรับผิดชอบ']+'</div>'+
+          '</div>'+
+          '<div class="mstatus">'+(m['สถานะ']||'ดำเนินการ')+'</div>'+
+        '</div>').join('')+
+    '</div>').join('');
 }
 
-function renderContacts(list){
-  const wrap = document.getElementById('contactsWrap');
-  wrap.innerHTML = list.map(c=>`
-    <div class="contact-card">
-      <div class="contact-avatar">👮</div>
-      <div class="contact-info">
-        <div class="name">${c['ชื่อสกุล']}</div>
-        <div class="role">${c['ตำแหน่ง']}</div>
-        <div class="org">${c['หน่วยงาน']}</div>
-      </div>
-      <div class="contact-phone">
-        <div class="num">${c['เบอร์โทร']}</div>
-        <div class="lbl">โทรประสานงาน</div>
-      </div>
-    </div>`).join('');
-}
-
-/* ---------- Login ---------- */
-function openLogin(){ document.getElementById('loginOverlay').classList.add('show'); document.getElementById('pinInput').value=''; document.getElementById('pinErr').textContent=''; document.getElementById('pinInput').focus(); }
-function closeLogin(){ document.getElementById('loginOverlay').classList.remove('show'); }
+/* ===== LOGIN ===== */
+function openLogin(){document.getElementById('loginOverlay').classList.add('show');document.getElementById('pinInput').value='';document.getElementById('pinErr').textContent='';document.getElementById('pinInput').focus();}
+function closeLogin(){document.getElementById('loginOverlay').classList.remove('show');}
 async function submitPin(){
-  const pin = document.getElementById('pinInput').value;
-  if(pin.length<4){ document.getElementById('pinErr').textContent='กรุณากรอกรหัสให้ครบ'; return; }
+  const pin=document.getElementById('pinInput').value;
+  if(pin.length<4){document.getElementById('pinErr').textContent='กรุณากรอกรหัสให้ครบ';return;}
   try{
-    if(!API_URL || API_URL.indexOf('PASTE_')===0){
-      // dev fallback: allow default pin locally without backend
-      if(pin==='309309'){ sessionStorage.setItem('cc_pin', pin); location.href='input.html'; return; }
-      document.getElementById('pinErr').textContent='รหัสไม่ถูกต้อง';
-      return;
-    }
-    const res = await jsonp({action:'login', pin});
-    if(res.status==='ok' && res.valid){
-      sessionStorage.setItem('cc_pin', pin);
-      location.href='input.html';
-    }else{
-      document.getElementById('pinErr').textContent='รหัสไม่ถูกต้อง กรุณาลองใหม่';
-    }
-  }catch(e){ document.getElementById('pinErr').textContent='เชื่อมต่อระบบไม่ได้'; }
+    const res=await jsonp({action:'login',pin});
+    if(res.status==='ok'&&res.valid){sessionStorage.setItem('cc_pin',pin);location.href='input.html';}
+    else document.getElementById('pinErr').textContent='รหัสไม่ถูกต้อง กรุณาลองใหม่';
+  }catch(e){document.getElementById('pinErr').textContent='เชื่อมต่อระบบไม่ได้';}
 }
-document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitPin(); });
+document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitPin();});
 
-function togglePresent(){ document.body.classList.toggle('present'); }
+function togglePresent(){document.body.classList.toggle('present');}
+if(new URLSearchParams(location.search).get('tv')==='1'){document.body.classList.add('present');}
 
 loadData();
-setInterval(loadData, 5*60*1000);
+setInterval(loadData,5*60*1000);
 </script>
 </body>
 </html>
