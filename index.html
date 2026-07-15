@@ -133,6 +133,22 @@ header.topbar::before{
 .panel-hd .title .bar{width:4px; height:16px; border-radius:2px; background:var(--accent); box-shadow:0 0 10px var(--accent);}
 .panel-hd .badge{font-size:10px; padding:3px 10px; border-radius:999px; background:rgba(0,229,255,.08); color:var(--accent); border:1px solid rgba(0,229,255,.3); font-weight:800; letter-spacing:1px;}
 
+/* ===== YEAR SELECTOR ===== */
+.year-bar{display:flex; align-items:center; gap:8px; margin-bottom:13px; flex-wrap:wrap;}
+.year-bar .yb-lbl{font-size:12px; color:var(--text-1); font-weight:700; margin-right:4px;}
+.year-chip{
+  padding:7px 18px; border-radius:999px; border:1px solid var(--border); background:rgba(10,18,34,.7);
+  color:var(--text-1); font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit; transition:.2s;
+}
+.year-chip:hover{border-color:var(--border-glow); color:var(--text-0);}
+.year-chip.active{
+  background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:#04111f; border-color:transparent;
+  box-shadow:0 0 16px rgba(0,229,255,.35);
+}
+.kpi .delta{display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:800; padding:2px 8px; border-radius:999px; margin-left:6px;}
+.delta.up{background:rgba(255,45,85,.12); color:var(--danger-soft); border:1px solid rgba(255,45,85,.3);}
+.delta.down{background:rgba(25,227,164,.1); color:var(--good); border:1px solid rgba(25,227,164,.3);}
+
 /* ===== KPI ===== */
 .kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin-bottom:13px;}
 .kpi{
@@ -293,16 +309,21 @@ body.present .topbar,body.present footer.foot,body.present .ticker{display:none;
   </header>
 
   <!-- KPI -->
+  <!-- YEAR SELECTOR -->
+  <div class="year-bar" id="yearBar">
+    <span class="yb-lbl">📅 แสดงข้อมูล:</span>
+  </div>
+
   <div class="kpi-row">
     <div class="kpi k1">
-      <div class="lbl">📁 จำนวนคดีสะสม (2566–ปัจจุบัน)</div>
+      <div class="lbl">📁 <span id="kpiCasesLbl">จำนวนคดี</span></div>
       <div class="val"><span id="kpiCases">0</span> <span style="font-size:15px;">คดี</span></div>
       <div class="sub" id="kpiCasesSub">-</div>
       <canvas class="spark" id="spark1" width="90" height="34"></canvas>
       <div class="glowline"></div>
     </div>
     <div class="kpi k2">
-      <div class="lbl">💸 มูลค่าความเสียหายสะสม</div>
+      <div class="lbl">💸 <span id="kpiDamageLbl">มูลค่าความเสียหาย</span></div>
       <div class="val"><span id="kpiDamage">0</span> <span style="font-size:15px;">ลบ.</span></div>
       <div class="sub" id="kpiDamageSub">-</div>
       <canvas class="spark" id="spark2" width="90" height="34"></canvas>
@@ -477,7 +498,7 @@ const FALLBACK={
     {'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857},
     {'ปี':'2567','จำนวนคดี':999,'มูลค่าความเสียหาย':56254078},
     {'ปี':'2568','จำนวนคดี':932,'มูลค่าความเสียหาย':48875912},
-    {'ปี':'2569 (ต.ค.68-พ.ค.69)','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776}
+    {'ปี':'2569','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776}
   ],
   district:['เมืองหนองบัวลำภู','ศรีบุญเรือง','นากลาง','โนนสัง','นาวัง','สุวรรณคูหา'].map(a=>({'อำเภอ':a,'เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100})),
   scamTypes:[
@@ -541,22 +562,72 @@ function sparkline(id, data, color){
   data.forEach((v,i)=>{ctx.beginPath();ctx.arc(xs(i),ys(v),1.8,0,7);ctx.fillStyle=color;ctx.fill();});
 }
 
+let SELECTED_YEAR = null; // null = not initialized, 'ALL' = รวมทุกปี, otherwise year label
+
+function renderYearBar(y){
+  const bar=document.getElementById('yearBar');
+  const chips=['<span class="yb-lbl">📅 แสดงข้อมูล:</span>'];
+  y.forEach(r=>{
+    const yl=String(r['ปี']);
+    chips.push('<button class="year-chip'+(SELECTED_YEAR===yl?' active':'')+'" onclick="selectYear(\''+yl.replace(/'/g,"\\'")+'\')">'+yl+'</button>');
+  });
+  chips.push('<button class="year-chip'+(SELECTED_YEAR==='ALL'?' active':'')+'" onclick="selectYear(\'ALL\')">รวมทุกปี</button>');
+  bar.innerHTML=chips.join('');
+}
+
+function selectYear(yl){
+  SELECTED_YEAR=yl;
+  render();
+}
+
 function render(){
   const y=DATA.yearly||[];
-  const cases=y.map(r=>Number(r['จำนวนคดี']||0));
-  const damages=y.map(r=>Number(r['มูลค่าความเสียหาย']||0));
-  const totalCases=cases.reduce((a,b)=>a+b,0);
-  const totalDamage=damages.reduce((a,b)=>a+b,0);
-  const avgPerCase=totalCases?Math.round(totalDamage/totalCases):0;
+  if(!y.length) return;
 
-  countUp(document.getElementById('kpiCases'), totalCases);
-  countUp(document.getElementById('kpiDamage'), totalDamage/1e6, {dec:1});
+  // default = latest year
+  if(SELECTED_YEAR===null) SELECTED_YEAR=String(y[y.length-1]['ปี']);
+  // if selected year no longer exists in data, reset to latest
+  if(SELECTED_YEAR!=='ALL' && !y.some(r=>String(r['ปี'])===SELECTED_YEAR)) SELECTED_YEAR=String(y[y.length-1]['ปี']);
+
+  renderYearBar(y);
+
+  const allCases=y.map(r=>Number(r['จำนวนคดี']||0));
+  const allDamages=y.map(r=>Number(r['มูลค่าความเสียหาย']||0));
+
+  let showCases, showDamage, casesSub, damageDelta='', casesDelta='';
+  if(SELECTED_YEAR==='ALL'){
+    showCases=allCases.reduce((a,b)=>a+b,0);
+    showDamage=allDamages.reduce((a,b)=>a+b,0);
+    casesSub='สะสม '+y.length+' ปีงบประมาณ';
+  }else{
+    const idx=y.findIndex(r=>String(r['ปี'])===SELECTED_YEAR);
+    showCases=allCases[idx];
+    showDamage=allDamages[idx];
+    casesSub='ปีงบประมาณ '+SELECTED_YEAR;
+    if(idx>0){
+      const pc=allCases[idx-1], pd=allDamages[idx-1];
+      if(pc>0){
+        const dc=Math.round((showCases-pc)/pc*100);
+        casesDelta='<span class="delta '+(dc>=0?'up':'down')+'">'+(dc>=0?'▲':'▼')+' '+Math.abs(dc)+'% จากปีก่อน</span>';
+      }
+      if(pd>0){
+        const dd=Math.round((showDamage-pd)/pd*100);
+        damageDelta='<span class="delta '+(dd>=0?'up':'down')+'">'+(dd>=0?'▲':'▼')+' '+Math.abs(dd)+'% จากปีก่อน</span>';
+      }
+    }
+  }
+  const avgPerCase=showCases?Math.round(showDamage/showCases):0;
+
+  document.getElementById('kpiCasesLbl').textContent=SELECTED_YEAR==='ALL'?'จำนวนคดีสะสม (ทุกปี)':'จำนวนคดี ปี '+SELECTED_YEAR;
+  document.getElementById('kpiDamageLbl').textContent=SELECTED_YEAR==='ALL'?'มูลค่าความเสียหายสะสม (ทุกปี)':'มูลค่าความเสียหาย ปี '+SELECTED_YEAR;
+  countUp(document.getElementById('kpiCases'), showCases);
+  countUp(document.getElementById('kpiDamage'), showDamage/1e6, {dec:1});
   countUp(document.getElementById('kpiAvg'), avgPerCase);
-  document.getElementById('kpiCasesSub').textContent='สะสม '+y.length+' ปีงบประมาณ';
-  document.getElementById('kpiDamageSub').textContent=fmt(totalDamage)+' บาท';
+  document.getElementById('kpiCasesSub').innerHTML=casesSub+' '+casesDelta;
+  document.getElementById('kpiDamageSub').innerHTML=fmt(showDamage)+' บาท '+damageDelta;
 
-  sparkline('spark1', cases, 'rgba(255,107,129,.9)');
-  sparkline('spark2', damages, 'rgba(255,176,32,.9)');
+  sparkline('spark1', allCases, 'rgba(255,107,129,.9)');
+  sparkline('spark2', allDamages, 'rgba(255,176,32,.9)');
 
   const d=DATA.district||[];
   let avgTarget=0;
@@ -578,9 +649,12 @@ function render(){
 }
 
 function renderTicker(scams, y){
-  const latest=y[y.length-1]||{};
+  let row=y[y.length-1]||{};
+  if(SELECTED_YEAR && SELECTED_YEAR!=='ALL'){
+    const f=y.find(r=>String(r['ปี'])===SELECTED_YEAR); if(f) row=f;
+  }
   const items=[
-    '📢 ปี '+(latest['ปี']||'-')+' รับแจ้ง <b>'+fmt(latest['จำนวนคดี']||0)+' คดี</b> ความเสียหาย <b>'+fmt(latest['มูลค่าความเสียหาย']||0)+' บาท</b>'
+    '📢 ปี '+(row['ปี']||'-')+' รับแจ้ง <b>'+fmt(row['จำนวนคดี']||0)+' คดี</b> ความเสียหาย <b>'+fmt(row['มูลค่าความเสียหาย']||0)+' บาท</b>'
   ].concat(scams.map(s=>'⚠️ ระวังภัย: <b>'+s['รูปแบบ']+'</b>'))
    .concat([
     '☎️ ตกเป็นเหยื่อ โทรแจ้ง <b>AOC 1441</b> ระงับบัญชีม้าภายใน 3 ชั่วโมง',
@@ -595,12 +669,13 @@ function renderTrend(y){
   const cases=y.map(r=>Number(r['จำนวนคดี']||0));
   const damage=y.map(r=>Number(r['มูลค่าความเสียหาย']||0)/1e6);
   if(trendChart)trendChart.destroy();
+  const barColors=labels.map(l=> (SELECTED_YEAR==='ALL'||String(l)===SELECTED_YEAR) ? 'rgba(255,45,85,.65)' : 'rgba(255,45,85,.18)');
   const grad=ctx.getContext('2d').createLinearGradient(0,0,0,230);
   grad.addColorStop(0,'rgba(0,229,255,.28)'); grad.addColorStop(1,'rgba(0,229,255,0)');
   trendChart=new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
-      {type:'bar',label:'จำนวนคดี',data:cases,backgroundColor:'rgba(255,45,85,.5)',hoverBackgroundColor:'rgba(255,45,85,.8)',borderRadius:7,yAxisID:'y',order:2,barPercentage:.5},
+      {type:'bar',label:'จำนวนคดี',data:cases,backgroundColor:barColors,hoverBackgroundColor:'rgba(255,45,85,.85)',borderRadius:7,yAxisID:'y',order:2,barPercentage:.5},
       {type:'line',label:'ความเสียหาย (ลบ.)',data:damage,borderColor:'#00e5ff',backgroundColor:grad,tension:.4,fill:true,yAxisID:'y1',pointRadius:4.5,pointBackgroundColor:'#00e5ff',pointBorderColor:'#04111f',pointBorderWidth:2,order:1}
     ]},
     options:{
