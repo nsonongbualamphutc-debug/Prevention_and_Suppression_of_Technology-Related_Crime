@@ -99,6 +99,7 @@ button.btn{padding:10px 18px; border-radius:10px; border:none; font-weight:700; 
     <div class="tab active" data-tab="yearly">📈 สถิติรายปี</div>
     <div class="tab" data-tab="district">🏘️ เป้าหมายรายอำเภอ</div>
     <div class="tab" data-tab="scam">⚠️ รูปแบบการหลอกลวง</div>
+    <div class="tab" data-tab="freeze">🧊 แจ้งอายัดบัญชี</div>
     <div class="tab" data-tab="measures">🛡️ มาตรการ</div>
     <div class="tab" data-tab="contacts">👮 ผู้ประสานงาน</div>
     <div class="tab" data-tab="import">📥 นำเข้า/ส่งออกไฟล์ Excel</div>
@@ -138,6 +139,19 @@ button.btn{padding:10px 18px; border-radius:10px; border:none; font-weight:700; 
     <div class="toolbar">
       <button class="btn btn-add" onclick="addRow('scam')">+ เพิ่มแถว</button>
       <button class="btn btn-primary" onclick="saveTable('scam')">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- FREEZE -->
+  <div class="panel" id="panel-freeze">
+    <h3><span class="bar"></span>ข้อมูลการแจ้งอายัดบัญชี (รายปี)</h3>
+    <table class="edit"><thead><tr>
+      <th width="20%">ปี</th><th width="24%">จำนวนเรื่องแจ้งอายัด (เรื่อง)</th>
+      <th width="24%">บัญชีที่อายัดได้ (บัญชี)</th><th width="28%">มูลค่าที่อายัดได้ (บาท)</th><th width="4%"></th>
+    </tr></thead><tbody id="tbody-freeze"></tbody></table>
+    <div class="toolbar">
+      <button class="btn btn-add" onclick="addRow('freeze')">+ เพิ่มแถว</button>
+      <button class="btn btn-primary" onclick="saveTable('freeze')">💾 บันทึก</button>
     </div>
   </div>
 
@@ -190,17 +204,18 @@ button.btn{padding:10px 18px; border-radius:10px; border:none; font-weight:700; 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbydQei_fURKWmqqhxgactVV5KPuJntaebQXJbfDV5qEXR8D0gZZRGEUepRkMzFaHXW-/exec';
 let PIN = sessionStorage.getItem('cc_pin') || '';
-let STATE = { yearly:[], district:[], scam:[], measures:[], contacts:[] };
+let STATE = { yearly:[], district:[], scam:[], freeze:[], measures:[], contacts:[] };
 
 const COLS = {
   yearly:['ปี','จำนวนคดี','มูลค่าความเสียหาย','หมายเหตุ'],
   district:['อำเภอ','เป้ารับแจ้งคดี','ผลรับแจ้งคดี','เป้าติดตามอายัดเงิน','ผลติดตามอายัดเงิน','เป้าสอบสวนสรุปสำนวน','ผลสอบสวนสรุปสำนวน'],
   scam:['ลำดับ','รูปแบบ','สัดส่วน'],
+  freeze:['ปี','จำนวนเรื่องแจ้งอายัด','บัญชีที่อายัดได้','มูลค่าที่อายัดได้'],
   measures:['ด้าน','ลำดับ','รายละเอียด','หน่วยงานรับผิดชอบ','สถานะ'],
   contacts:['ลำดับ','ชื่อสกุล','หน่วยงาน','ตำแหน่ง','เบอร์โทร']
 };
-const SHEET_KEY = { yearly:'yearly', district:'district', scam:'scamTypes', measures:'measures', contacts:'contacts' };
-const SAVE_ACTION = { yearly:'saveYearly', district:'saveDistrict', scam:'saveScamTypes', measures:'saveMeasures', contacts:'saveContacts' };
+const SHEET_KEY = { yearly:'yearly', district:'district', scam:'scamTypes', freeze:'freeze', measures:'measures', contacts:'contacts' };
+const SAVE_ACTION = { yearly:'saveYearly', district:'saveDistrict', scam:'saveScamTypes', freeze:'saveFreeze', measures:'saveMeasures', contacts:'saveContacts' };
 
 /* ---------- Lock ---------- */
 function checkLock(){
@@ -261,6 +276,7 @@ async function loadAll(){
     STATE.yearly = res.data.yearly||[];
     STATE.district = res.data.district||[];
     STATE.scam = res.data.scamTypes||[];
+    STATE.freeze = res.data.freeze||[];
     STATE.measures = res.data.measures||[];
     STATE.contacts = res.data.contacts||[];
     renderAll();
@@ -276,7 +292,7 @@ function seedDefaults(){
     {'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857,'หมายเหตุ':''},
     {'ปี':'2567','จำนวนคดี':999,'มูลค่าความเสียหาย':56254078,'หมายเหตุ':''},
     {'ปี':'2568','จำนวนคดี':932,'มูลค่าความเสียหาย':48875912,'หมายเหตุ':''},
-    {'ปี':'2569 (ต.ค.68-พ.ค.69)','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776,'หมายเหตุ':'ข้อมูล ณ พ.ค. 69'}
+    {'ปี':'2569','จำนวนคดี':201,'มูลค่าความเสียหาย':17744776,'หมายเหตุ':'ข้อมูล ณ พ.ค. 69'}
   ];
   STATE.district = ['เมืองหนองบัวลำภู','ศรีบุญเรือง','นากลาง','โนนสัง','นาวัง','สุวรรณคูหา'].map(a=>(
     {'อำเภอ':a,'เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}
@@ -288,6 +304,12 @@ function seedDefaults(){
     {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
     {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
     {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
+  ];
+  STATE.freeze = [
+    {'ปี':'2566','จำนวนเรื่องแจ้งอายัด':310,'บัญชีที่อายัดได้':205,'มูลค่าที่อายัดได้':8200000},
+    {'ปี':'2567','จำนวนเรื่องแจ้งอายัด':720,'บัญชีที่อายัดได้':540,'มูลค่าที่อายัดได้':18500000},
+    {'ปี':'2568','จำนวนเรื่องแจ้งอายัด':690,'บัญชีที่อายัดได้':520,'มูลค่าที่อายัดได้':16300000},
+    {'ปี':'2569','จำนวนเรื่องแจ้งอายัด':160,'บัญชีที่อายัดได้':120,'มูลค่าที่อายัดได้':6100000}
   ];
   STATE.measures = [
     {'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'การบล็อกลิงก์และเว็บพนัน ปิดกั้น URL/IP ภายใน 24 ชม.','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
@@ -333,7 +355,7 @@ function handleFile(file){
   const reader = new FileReader();
   reader.onload = (e)=>{
     const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
-    const mapSheet = {YearlyStats:'yearly', DistrictTargets:'district', ScamTypes:'scam', Measures:'measures', Contacts:'contacts'};
+    const mapSheet = {YearlyStats:'yearly', DistrictTargets:'district', ScamTypes:'scam', Freeze:'freeze', Measures:'measures', Contacts:'contacts'};
     let found = 0;
     Object.keys(mapSheet).forEach(sheetName=>{
       if(wb.SheetNames.includes(sheetName)){
@@ -356,6 +378,7 @@ function buildWorkbook(data){
     YearlyStats: data.yearly,
     DistrictTargets: data.district,
     ScamTypes: data.scam,
+    Freeze: data.freeze,
     Measures: data.measures,
     Contacts: data.contacts
   };
@@ -371,6 +394,7 @@ function downloadTemplate(){
     yearly:[{'ปี':'2566','จำนวนคดี':479,'มูลค่าความเสียหาย':27577857,'หมายเหตุ':''}],
     district:[{'อำเภอ':'เมืองหนองบัวลำภู','เป้ารับแจ้งคดี':100,'ผลรับแจ้งคดี':100,'เป้าติดตามอายัดเงิน':100,'ผลติดตามอายัดเงิน':100,'เป้าสอบสวนสรุปสำนวน':100,'ผลสอบสวนสรุปสำนวน':100}],
     scam:[{'ลำดับ':1,'รูปแบบ':'หลอกขายสินค้า','สัดส่วน':'อันดับ 1'}],
+    freeze:[{'ปี':'2566','จำนวนเรื่องแจ้งอายัด':310,'บัญชีที่อายัดได้':205,'มูลค่าที่อายัดได้':8200000}],
     measures:[{'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'รายละเอียดมาตรการ','หน่วยงานรับผิดชอบ':'หน่วยงานรับผิดชอบ','สถานะ':'ดำเนินการต่อเนื่อง'}],
     contacts:[{'ลำดับ':1,'ชื่อสกุล':'ชื่อ-สกุล','หน่วยงาน':'หน่วยงาน','ตำแหน่ง':'ตำแหน่ง','เบอร์โทร':'08x-xxx-xxxx'}]
   };

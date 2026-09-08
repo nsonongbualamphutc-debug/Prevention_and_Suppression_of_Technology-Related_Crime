@@ -212,6 +212,19 @@ header.topbar::before{
 .district-card .metrics{display:flex; justify-content:space-around; margin-top:9px; font-size:8.5px; color:var(--text-2); position:relative;}
 .district-card .metrics b{display:block; color:var(--text-0); font-size:10.5px; font-weight:800;}
 
+/* ===== FREEZE / RECOVERY ===== */
+.freeze-stats{display:flex; flex-direction:column; gap:12px; height:195px; justify-content:center;}
+.freeze-stat{display:flex; align-items:center; gap:14px; background:rgba(4,8,16,.5); border:1px solid var(--border); border-radius:12px; padding:14px 16px;}
+.freeze-stat .fs-ic{width:44px; height:44px; flex:none; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; background:linear-gradient(135deg, rgba(0,145,255,.22), rgba(0,229,255,.07)); border:1px solid rgba(0,229,255,.3);}
+.freeze-stat .fs-body{flex:1;}
+.freeze-stat .fs-val{font-size:24px; font-weight:900; font-family:'Orbitron'; color:var(--accent); line-height:1;}
+.freeze-stat .fs-lbl{font-size:11.5px; color:var(--text-1); margin-top:3px;}
+.recovery-wrap{display:flex; align-items:center; gap:20px; height:195px; justify-content:center;}
+.recovery-wrap .ring .pct{color:var(--good); font-family:'Orbitron'; font-weight:900;}
+.recovery-detail{font-size:12px; color:var(--text-1); line-height:1.9;}
+.recovery-detail b{color:var(--text-0); font-family:'Orbitron'; font-weight:700;}
+.recovery-detail .rd-good{color:var(--good);}
+
 /* ===== MEASURES ===== */
 .measures-wrap{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 .measure-col-hd{font-size:12px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; gap:7px; letter-spacing:.5px; align-items:center;}
@@ -384,6 +397,37 @@ body.present .topbar,body.present footer.foot,body.present .ticker{display:none;
     <div class="district-grid" id="districtGrid"></div>
   </div>
 
+  <!-- FREEZE / RECOVERY -->
+  <div class="main-grid" style="grid-template-columns:1fr 1fr 1fr; margin-bottom:13px;">
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>การแจ้งอายัดบัญชี</div>
+        <div class="badge mono" id="freezeBadge">-</div>
+      </div>
+      <div class="freeze-stats" id="freezeStats"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>อัตราการอายัด/กู้คืนความเสียหาย</div>
+        <div class="badge mono">RECOVERY</div>
+      </div>
+      <div class="recovery-wrap">
+        <div class="ring" style="width:120px;height:120px;">
+          <svg width="120" height="120" viewBox="0 0 120 120" id="recoverySvg"></svg>
+          <div class="pct" style="font-size:24px;" id="recoveryPct">-</div>
+        </div>
+        <div class="recovery-detail" id="recoveryDetail"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="title"><span class="bar"></span>มูลค่าอายัดได้ เทียบความเสียหาย</div>
+        <div class="badge mono">รายปี</div>
+      </div>
+      <div class="chart-box" style="height:195px;"><canvas id="freezeChart"></canvas></div>
+    </div>
+  </div>
+
   <!-- MEASURES -->
   <div class="panel" style="margin-bottom:13px;">
     <div class="panel-hd">
@@ -508,6 +552,12 @@ const FALLBACK={
     {'ลำดับ':4,'รูปแบบ':'หลอกให้หลงรักผ่านโซเชียลมีเดียแล้วขอเงิน (Romance Scam)','สัดส่วน':'พบบ่อย'},
     {'ลำดับ':5,'รูปแบบ':'ส่งลิงก์ปลอมดูดข้อมูลบัตรเครดิตและบัญชีธนาคาร','สัดส่วน':'พบบ่อย'},
     {'ลำดับ':6,'รูปแบบ':'เปิดบ่อนออนไลน์โดยใช้บัญชีม้าของคนในพื้นที่','สัดส่วน':'พบบ่อย'}
+  ],
+  freeze:[
+    {'ปี':'2566','จำนวนเรื่องแจ้งอายัด':310,'บัญชีที่อายัดได้':205,'มูลค่าที่อายัดได้':8200000},
+    {'ปี':'2567','จำนวนเรื่องแจ้งอายัด':720,'บัญชีที่อายัดได้':540,'มูลค่าที่อายัดได้':18500000},
+    {'ปี':'2568','จำนวนเรื่องแจ้งอายัด':690,'บัญชีที่อายัดได้':520,'มูลค่าที่อายัดได้':16300000},
+    {'ปี':'2569','จำนวนเรื่องแจ้งอายัด':160,'บัญชีที่อายัดได้':120,'มูลค่าที่อายัดได้':6100000}
   ],
   measures:[
     {'ด้าน':'การปราบปราม','ลำดับ':'1.1','รายละเอียด':'การบล็อกลิงก์และเว็บพนัน: ปิดกั้น URL/IP เว็บหลอกลวง-เว็บพนัน ภายใน 24 ชม.','หน่วยงานรับผิดชอบ':'ตำรวจภูธรจังหวัด / ธนาคารทุกแห่ง','สถานะ':'ดำเนินการต่อเนื่อง'},
@@ -641,9 +691,10 @@ function render(){
   document.getElementById('lastUpdate').textContent=DATA.updatedAt?new Date(DATA.updatedAt).toLocaleString('th-TH'):new Date().toLocaleString('th-TH');
 
   renderTicker(DATA.scamTypes||[], y);
-  renderTrend(y);
+  try{ renderTrend(y); }catch(e){}
   renderScamList(DATA.scamTypes||[]);
   renderGauge(y);
+  renderFreeze(DATA.freeze||[], y);
   renderDistricts(d);
   renderMeasures(DATA.measures||[]);
 }
@@ -756,6 +807,83 @@ function renderGauge(y){
   gt.textContent=level; gt.style.color=color;
 }
 
+let freezeChart;
+function renderFreeze(freeze, yearly){
+  if(!freeze || !freeze.length){
+    document.getElementById('freezeStats').innerHTML='<div style="color:var(--text-2);text-align:center;font-size:12px;">ยังไม่มีข้อมูลการแจ้งอายัด</div>';
+    return;
+  }
+  let row=freeze[freeze.length-1];
+  if(SELECTED_YEAR && SELECTED_YEAR!=='ALL'){
+    const f=freeze.find(r=>String(r['ปี'])===SELECTED_YEAR); if(f) row=f;
+  }
+  let reports, accounts, amount;
+  if(SELECTED_YEAR==='ALL'){
+    reports=freeze.reduce((s,r)=>s+Number(r['จำนวนเรื่องแจ้งอายัด']||0),0);
+    accounts=freeze.reduce((s,r)=>s+Number(r['บัญชีที่อายัดได้']||0),0);
+    amount=freeze.reduce((s,r)=>s+Number(r['มูลค่าที่อายัดได้']||0),0);
+    document.getElementById('freezeBadge').textContent='ทุกปี';
+  }else{
+    reports=Number(row['จำนวนเรื่องแจ้งอายัด']||0);
+    accounts=Number(row['บัญชีที่อายัดได้']||0);
+    amount=Number(row['มูลค่าที่อายัดได้']||0);
+    document.getElementById('freezeBadge').textContent='ปี '+(row['ปี']||'-');
+  }
+
+  document.getElementById('freezeStats').innerHTML=
+    '<div class="freeze-stat"><div class="fs-ic">📨</div><div class="fs-body"><div class="fs-val">'+fmt(reports)+'</div><div class="fs-lbl">เรื่องที่แจ้งอายัด</div></div></div>'+
+    '<div class="freeze-stat"><div class="fs-ic">🧊</div><div class="fs-body"><div class="fs-val">'+fmt(accounts)+'</div><div class="fs-lbl">บัญชีที่อายัดได้</div></div></div>'+
+    '<div class="freeze-stat"><div class="fs-ic">💰</div><div class="fs-body"><div class="fs-val">'+(amount/1e6).toLocaleString('th-TH',{maximumFractionDigits:1})+' ลบ.</div><div class="fs-lbl">มูลค่าที่อายัดได้ ('+fmt(amount)+' บาท)</div></div></div>';
+
+  let damage;
+  if(SELECTED_YEAR==='ALL'){
+    damage=yearly.reduce((s,r)=>s+Number(r['มูลค่าความเสียหาย']||0),0);
+  }else{
+    const yr=yearly.find(r=>String(r['ปี'])===SELECTED_YEAR);
+    damage=yr?Number(yr['มูลค่าความเสียหาย']||0):0;
+  }
+  const rate=damage?Math.min(Math.round(amount/damage*100),100):0;
+  const color=rate>=40?'#19e3a4':rate>=20?'#ffb020':'#ff2d55';
+  document.getElementById('recoverySvg').innerHTML=recoveryRing(rate,color);
+  const rp=document.getElementById('recoveryPct');
+  rp.textContent=rate+'%'; rp.style.color=color;
+  document.getElementById('recoveryDetail').innerHTML=
+    'อายัดได้ <b class="rd-good">'+(amount/1e6).toLocaleString('th-TH',{maximumFractionDigits:1})+' ลบ.</b><br>'+
+    'จากความเสียหาย <b>'+(damage/1e6).toLocaleString('th-TH',{maximumFractionDigits:1})+' ลบ.</b><br>'+
+    '<span style="font-size:10.5px;color:var(--text-2);">คิดเป็นสัดส่วนที่กู้คืน/ระงับได้</span>';
+
+  const ctx=document.getElementById('freezeChart');
+  try{
+  const labels=freeze.map(r=>String(r['ปี']));
+  const frozen=freeze.map(r=>Number(r['มูลค่าที่อายัดได้']||0)/1e6);
+  const dmg=labels.map(l=>{const yr=yearly.find(r=>String(r['ปี'])===l);return yr?Number(yr['มูลค่าความเสียหาย']||0)/1e6:0;});
+  if(freezeChart)freezeChart.destroy();
+  freezeChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'ความเสียหาย (ลบ.)',data:dmg,backgroundColor:'rgba(255,45,85,.35)',borderRadius:5,barPercentage:.7},
+      {label:'อายัดได้ (ลบ.)',data:frozen,backgroundColor:'rgba(25,227,164,.7)',borderRadius:5,barPercentage:.7}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:1200},
+      plugins:{legend:{labels:{color:'#8fa3c8',font:{family:'Noto Sans Thai',size:10},usePointStyle:true,boxWidth:8}},
+        tooltip:{backgroundColor:'#0a1222',borderColor:'#15233f',borderWidth:1,titleColor:'#eaf4ff',bodyColor:'#8fa3c8'}},
+      scales:{
+        x:{ticks:{color:'#5a6a8f',font:{size:9.5}},grid:{display:false}},
+        y:{ticks:{color:'#5a6a8f',font:{size:9.5}},grid:{color:'rgba(255,255,255,.04)'}}
+      }
+    }
+  });
+  }catch(e){}
+}
+function recoveryRing(pct,color){
+  const r=50,c=2*Math.PI*r,off=c-(Math.min(pct,100)/100)*c;
+  return '<g transform="rotate(-90 60 60)">'+
+    '<circle cx="60" cy="60" r="'+r+'" stroke="rgba(255,255,255,.07)" stroke-width="9" fill="none"/>'+
+    '<circle cx="60" cy="60" r="'+r+'" stroke="'+color+'" stroke-width="9" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round" style="filter:drop-shadow(0 0 6px '+color+');transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1);"/>'+
+  '</g>';
+}
 function ringSvg(pct,color){
   const r=27,c=2*Math.PI*r;
   const off=c-(Math.min(pct,100)/100)*c;
